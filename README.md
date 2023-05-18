@@ -1,11 +1,11 @@
-## My Project
+# LLM Hosting Container
 
-TODO: Fill this README out!
+Welcome to the LLM Hosting Container GitHub repository!
 
-Be sure to:
+This repository contains Dockerfile and associated resources for building and
+hosting containers for large language models.
 
-* Change the title in this README
-* Edit your repository description on GitHub
+* HuggingFace Text Generation Inference (TGI) container
 
 ## Security
 
@@ -14,4 +14,3 @@ See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more inform
 ## License
 
 This project is licensed under the Apache-2.0 License.
-
