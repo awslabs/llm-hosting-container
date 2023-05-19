@@ -129,3 +129,7 @@ RUN HOME_DIR=/root && \
     rm -rf ${HOME_DIR}/oss_compliance*
 
 ENTRYPOINT ["./entrypoint.sh"]
+
+LABEL dlc_major_version="1"
+LABEL com.amazonaws.ml.engines.sagemaker.dlc.framework.huggingface.tgi="true"
+LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port="true"
