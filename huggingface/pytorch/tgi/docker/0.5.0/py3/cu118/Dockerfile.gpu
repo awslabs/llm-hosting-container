@@ -27,7 +27,7 @@ COPY router router
 COPY launcher launcher
 RUN cargo build --release
 
-FROM nvidia/cuda:11.8.0-devel-ubuntu22.04 as base
+FROM nvidia/cuda:11.8.0-devel-ubuntu20.04 as base
 
 ARG PYTORCH_VERSION=2.0.0
 ARG PYTHON_VERSION=3.9
