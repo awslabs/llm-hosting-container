@@ -6,7 +6,7 @@ on:
       tgi-version:
         description: 'tgi version'
         required: true
-        default: '0.6.0'
+        default: '0.8.2'
       pytorch-version:
         description: 'pytorch version'
         required: true
