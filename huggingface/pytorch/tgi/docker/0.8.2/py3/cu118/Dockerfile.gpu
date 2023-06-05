@@ -160,7 +160,6 @@ COPY --from=builder /usr/src/target/release/text-generation-launcher /usr/local/
 FROM base as sagemaker
 
 COPY --chmod=775 sagemaker-entrypoint.sh entrypoint.sh
-RUN sed -i '7 i export MODEL_ID="${HF_MODEL_ID}"' entrypoint.sh
 
 RUN HOME_DIR=/root && \
     pip install requests && \
