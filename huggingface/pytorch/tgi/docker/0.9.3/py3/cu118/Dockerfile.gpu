@@ -207,7 +207,6 @@ RUN HOME_DIR=/root && \
 RUN curl -o /root/THIRD-PARTY-LICENSES https://publish.djl.ai/dlc-licenses/huggingface/tgi-0.8.2/THIRD-PARTY-LICENSES
 
 # Final image
-FROM base
 
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["--json-output"]
