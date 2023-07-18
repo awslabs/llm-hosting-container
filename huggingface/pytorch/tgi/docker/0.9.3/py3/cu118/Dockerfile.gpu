@@ -1,6 +1,7 @@
-# Rust builder
-FROM lukemathwalker/cargo-chef:latest-rust-1.69 AS chef
+FROM lukemathwalker/cargo-chef:latest-rust-1.70 AS chef
 WORKDIR /usr/src
+
+ARG CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
 
 FROM chef as planner
 COPY Cargo.toml Cargo.toml
@@ -14,6 +15,7 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM chef AS builder
 
 ARG GIT_SHA
+ARG DOCKER_LABEL
 
 RUN PROTOC_ZIP=protoc-21.12-linux-x86_64.zip && \
     curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v21.12/$PROTOC_ZIP && \
@@ -82,7 +84,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
         ninja-build \
         && rm -rf /var/lib/apt/lists/*
 
-RUN /opt/conda/bin/conda install -c "nvidia/label/cuda-11.8.0" -y cuda==11.8 && \
+RUN /opt/conda/bin/conda install -c "nvidia/label/cuda-11.8.0"  cuda==11.8 && \
     /opt/conda/bin/conda clean -ya
 
 # Build Flash Attention CUDA kernels
@@ -95,15 +97,35 @@ COPY server/Makefile-flash-att Makefile
 # Build specific version of flash attention
 RUN make build-flash-attention
 
-# Build Transformers CUDA kernels
-FROM kernel-builder as transformers-builder
+# Build Flash Attention v2 CUDA kernels
+FROM kernel-builder as flash-att-v2-builder
 
 WORKDIR /usr/src
 
-COPY server/Makefile-transformers Makefile
+COPY server/Makefile-flash-att-v2 Makefile
+
+# Build specific version of flash attention v2
+RUN make build-flash-attention-v2
+
+# Build Transformers CUDA kernels
+FROM kernel-builder as custom-kernels-builder
+
+WORKDIR /usr/src
+
+COPY server/custom_kernels/ .
 
 # Build specific version of transformers
-RUN BUILD_EXTENSIONS="True" make build-transformers
+RUN python setup.py build
+
+# Build vllm CUDA kernels
+FROM kernel-builder as vllm-builder
+
+WORKDIR /usr/src
+
+COPY server/Makefile-vllm Makefile
+
+# Build specific version of vllm
+RUN make build-vllm
 
 # Text Generation Inference base image
 FROM nvidia/cuda:11.8.0-base-ubuntu20.04 as base
@@ -135,13 +157,17 @@ COPY --from=flash-att-builder /usr/src/flash-attention/build/lib.linux-x86_64-cp
 COPY --from=flash-att-builder /usr/src/flash-attention/csrc/layer_norm/build/lib.linux-x86_64-cpython-39 /opt/conda/lib/python3.9/site-packages
 COPY --from=flash-att-builder /usr/src/flash-attention/csrc/rotary/build/lib.linux-x86_64-cpython-39 /opt/conda/lib/python3.9/site-packages
 
-# Copy build artifacts from transformers builder
-COPY --from=transformers-builder /usr/src/transformers /usr/src/transformers
-COPY --from=transformers-builder /usr/src/transformers/build/lib.linux-x86_64-cpython-39/transformers /usr/src/transformers/src/transformers
+# Copy build artifacts from flash attention v2 builder
+COPY --from=flash-att-v2-builder /usr/src/flash-attention-v2/build/lib.linux-x86_64-cpython-39 /opt/conda/lib/python3.9/site-packages
 
-# Install transformers dependencies
-RUN cd /usr/src/transformers && pip install -e . --no-cache-dir && pip install einops --no-cache-dir
-RUN rm -r transformers/examples
+# Copy build artifacts from custom kernels builder
+COPY --from=custom-kernels-builder /usr/src/build/lib.linux-x86_64-cpython-39 /opt/conda/lib/python3.9/site-packages
+
+# Copy builds artifacts from vllm builder
+COPY --from=vllm-builder /usr/src/vllm/build/lib.linux-x86_64-cpython-39 /opt/conda/lib/python3.9/site-packages
+
+# Install flash-attention dependencies
+RUN pip install einops --no-cache-dir
 
 # Install server
 COPY proto proto
@@ -151,7 +177,6 @@ RUN cd server && \
     make gen-server && \
     pip install -r requirements.txt && \
     pip install ".[bnb, accelerate]" --no-cache-dir
-RUN rm -r proto server
 
 # Install benchmarker
 COPY --from=builder /usr/src/target/release/text-generation-benchmark /usr/local/bin/text-generation-benchmark
@@ -159,6 +184,11 @@ COPY --from=builder /usr/src/target/release/text-generation-benchmark /usr/local
 COPY --from=builder /usr/src/target/release/text-generation-router /usr/local/bin/text-generation-router
 # Install launcher
 COPY --from=builder /usr/src/target/release/text-generation-launcher /usr/local/bin/text-generation-launcher
+
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        build-essential \
+        g++ \
+        && rm -rf /var/lib/apt/lists/*
 
 # AWS Sagemaker compatbile image
 FROM base as sagemaker
@@ -176,7 +206,11 @@ RUN HOME_DIR=/root && \
     rm -rf ${HOME_DIR}/oss_compliance*
 RUN curl -o /root/THIRD-PARTY-LICENSES https://publish.djl.ai/dlc-licenses/huggingface/tgi-0.8.2/THIRD-PARTY-LICENSES
 
+# Final image
+FROM base
+
 ENTRYPOINT ["./entrypoint.sh"]
+CMD ["--json-output"]
 
 LABEL dlc_major_version="1"
 LABEL com.amazonaws.ml.engines.sagemaker.dlc.framework.huggingface.tgi="true"
