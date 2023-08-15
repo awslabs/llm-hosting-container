@@ -1,9 +1,6 @@
 name: Build and push HuggingFace TGI docker image
 
 on:
-  push:
-    branches:
-      - 'main'
   workflow_dispatch:
     inputs:
       tgi-version:
