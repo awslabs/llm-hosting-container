@@ -148,7 +148,7 @@ jobs:
           docker run --gpus all --shm-size 2g -itd --rm -p 8080:8080 \
               -e SM_NUM_GPUS=$SM_NUM_GPUS -e HF_MODEL_ID=$HF_MODEL_ID \
               ${REGISTRY}/${REPOSITORY}:${TAG}
-          sleep 150
+          sleep 200
           ret=$(curl http://localhost:8080/invocations -X POST \
               -d '{"inputs":"What is Deep Learning?","parameters":{"max_new_tokens":128}}' \
               -H 'Content-Type: application/json')
