@@ -220,7 +220,7 @@ RUN HOME_DIR=/root && \
     chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
     ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python && \
     rm -rf ${HOME_DIR}/oss_compliance*
-RUN curl -o /root/THIRD-PARTY-LICENSES https://publish.djl.ai/dlc-licenses/huggingface/tgi-1.0.2/THIRD-PARTY-LICENSES
+COPY llm-hosting-container/huggingface/pytorch/tgi/docker/1.0.2/py3/cu118/THIRD-PARTY-LICENSES /root/THIRD-PARTY-LICENSES
 RUN /opt/conda/bin/conda clean -py
 
 ENTRYPOINT ["./entrypoint.sh"]
