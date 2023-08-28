@@ -221,6 +221,7 @@ RUN HOME_DIR=/root && \
     ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python && \
     rm -rf ${HOME_DIR}/oss_compliance*
 RUN curl -o /root/THIRD-PARTY-LICENSES https://publish.djl.ai/dlc-licenses/huggingface/tgi-1.0.2/THIRD-PARTY-LICENSES
+RUN /opt/conda/bin/conda clean -py
 
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["--json-output"]
