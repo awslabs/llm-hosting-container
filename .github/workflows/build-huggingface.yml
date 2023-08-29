@@ -9,7 +9,7 @@ on:
       tgi-version:
         description: 'tgi version'
         required: true
-        default: '1.0.2'
+        default: '1.0.3'
       pytorch-version:
         description: 'pytorch version'
         required: true
