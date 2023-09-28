@@ -223,8 +223,6 @@ RUN HOME_DIR=/root && \
 
 # From Scallion open-source dependencies
 COPY llm-hosting-container/huggingface/pytorch/tgi/docker/1.1.0/py3/cu118/THIRD-PARTY-LICENSES /root/THIRD-PARTY-LICENSES
-# From generate_oss_compliance.sh
-COPY llm-hosting-container/huggingface/pytorch/tgi/docker/1.1.0/py3/cu118/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
 
 RUN /opt/conda/bin/conda clean -py
 
