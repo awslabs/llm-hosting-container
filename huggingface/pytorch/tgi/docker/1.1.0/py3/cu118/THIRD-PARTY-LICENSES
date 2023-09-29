@@ -1,4 +1,4 @@
-** Flash Attention; version 2.0.7 -- https://github.com/Dao-AILab/flash-attention/tree/v2.0.7
+** Flash Attention; version 2.3.0 -- https://github.com/Dao-AILab/flash-attention/tree/v2.3.0
 Copyright (c) 2022, the respective contributors, as shown by the AUTHORS file.
 All rights reserved.
  
@@ -112,7 +112,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ------
 
-** text-generation-inference; version 1.0.3 -- https://github.com/huggingface/text-generation-inference
+** text-generation-inference; version 1.1.0 -- https://github.com/huggingface/text-generation-inference
 Copyright 2023 The HuggingFace Team
  
 Hugging Face Optimized Inference License 1.0 (HFOILv1.0)
@@ -390,7 +390,7 @@ any field of Use.
 
 ------
 
-** transformers; version 4.29.2 -- https://github.com/huggingface/transformers
+** transformers; version 4.33.2 -- https://github.com/huggingface/transformers
  
 Copyright 2018- The Hugging Face team. All rights reserved.
 
