@@ -43,7 +43,7 @@ RUN cargo build --release --workspace --exclude benchmark
 FROM ubuntu:22.04 AS base
 
 RUN apt-get update -y \
- && apt-get install -y --no-install-recommends \
+    && apt-get install -y --no-install-recommends \
     python3-pip \
     python3-setuptools \
     python-is-python3 \
@@ -55,7 +55,7 @@ RUN pip3 --no-cache-dir install --upgrade pip
 FROM base AS pyserver
 
 RUN apt-get update -y \
- && apt-get install -y --no-install-recommends \
+    && apt-get install -y --no-install-recommends \
     make \
     python3-venv \
     && rm -rf /var/lib/apt/lists/* \
@@ -77,7 +77,7 @@ RUN test -n ${VERSION:?}
 
 # Install system prerequisites
 RUN apt-get update -y \
- && apt-get install -y --no-install-recommends \
+    && apt-get install -y --no-install-recommends \
     gnupg2 \
     wget \
     && rm -rf /var/lib/apt/lists/* \
@@ -88,7 +88,7 @@ RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEU
 
 # Install neuronx packages
 RUN apt-get update -y \
- && apt-get install -y --no-install-recommends \
+    && apt-get install -y --no-install-recommends \
     aws-neuronx-dkms=2.14.5.0 \
     aws-neuronx-collectives=2.18.18.0-f7a1f7a35 \
     aws-neuronx-runtime-lib=2.18.14.0-0678cafac \
@@ -124,6 +124,14 @@ COPY --from=builder /usr/src/target/release/text-generation-launcher /usr/local/
 # Install python server
 COPY --from=pyserver /pyserver/build/dist dist
 RUN pip install dist/text-generation-server*.tar.gz
+
+# AWS Sagemaker compatible image
+FROM neuron as sagemaker
+
+COPY text-generation-inference/sagemaker-entrypoint.sh entrypoint.sh
+RUN chmod +x entrypoint.sh
+
+ENTRYPOINT ["./entrypoint.sh"]
 
 # Final image
 FROM neuron
