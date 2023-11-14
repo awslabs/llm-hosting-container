@@ -39,6 +39,13 @@ COPY --from=tgi /tgi/router router
 COPY --from=tgi /tgi/launcher launcher
 RUN cargo build --release --workspace --exclude benchmark
 
+# Fetch optimum-neuron sources
+FROM alpine/git AS optimum-neuron
+# OPTIMUM-NEURON-VERSION is a mandatory parameter
+ARG OPTIMUM_NEURON_VERSION
+RUN test -n ${OPTIMUM_NEURON_VERSION:?}
+RUN git clone --depth 1 --branch ${OPTIMUM_NEURON_VERSION} https://github.com/huggingface/optimum-neuron.git /optimum-neuron
+
 # Python base image
 FROM ubuntu:22.04 AS base
 
@@ -63,17 +70,13 @@ RUN apt-get update -y \
 
 RUN install -d /pyserver
 WORKDIR /pyserver
-COPY text-generation-inference/server server
+COPY --from=optimum-neuron /optimum-neuron/text-generation-inference/server server
 COPY --from=tgi /tgi/proto proto
 RUN pip3 install -r server/build-requirements.txt
 RUN VERBOSE=1 BUILDDIR=/pyserver/build PROTODIR=/pyserver/proto make -C server gen-server
 
 # Neuron base image (used for deployment)
 FROM base AS neuron
-
-# VERSION is a mandatory parameter
-ARG VERSION
-RUN test -n ${VERSION:?}
 
 # Install system prerequisites
 RUN apt-get update -y \
@@ -108,9 +111,9 @@ RUN pip3 install \
 RUN pip3 install \
     hf_transfer
 
-# Install optimum-neuron
-COPY dist/optimum-neuron-${VERSION}.tar.gz optimum-neuron.tar.gz
-RUN pip3 install optimum-neuron.tar.gz
+# Install optimum-neuron from sources directly
+COPY --from=optimum-neuron /optimum-neuron optimum-neuron
+RUN pip3 install ./optimum-neuron
 
 # TGI base env
 ENV HUGGINGFACE_HUB_CACHE=/data \
@@ -125,16 +128,10 @@ COPY --from=builder /usr/src/target/release/text-generation-launcher /usr/local/
 COPY --from=pyserver /pyserver/build/dist dist
 RUN pip install dist/text-generation-server*.tar.gz
 
-# AWS Sagemaker compatible image
+# Final image
 FROM neuron as sagemaker
 
-COPY text-generation-inference/sagemaker-entrypoint.sh entrypoint.sh
+COPY --from=optimum-neuron /optimum-neuron/text-generation-inference/sagemaker-entrypoint.sh entrypoint.sh
 RUN chmod +x entrypoint.sh
 
 ENTRYPOINT ["./entrypoint.sh"]
-
-# Final image
-FROM neuron
-
-ENTRYPOINT ["text-generation-launcher"]
-CMD ["--json-output"]
