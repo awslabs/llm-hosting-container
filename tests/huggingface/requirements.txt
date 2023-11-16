@@ -1,1 +1,2 @@
 sagemaker>=2.153.0
+pytest
