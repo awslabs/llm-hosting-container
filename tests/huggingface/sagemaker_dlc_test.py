@@ -51,8 +51,9 @@ def run_test(args):
     except TimeoutError:
         logging.error("Test timed out after {} seconds".format(args.timeout))
     finally:
-        predictor.delete_model()
-        predictor.delete_endpoint()
+        if predictor:
+            predictor.delete_model()
+            predictor.delete_endpoint()
         signal.alarm(0)
 
 @pytest.mark.parametrize("model_id", ["bigscience/bloom-560m", "EleutherAI/gpt-neox-20b", "google/flan-t5-xxl"])
