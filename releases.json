@@ -8,17 +8,26 @@
                 "cuda_version": "cu118",
                 "python_version": "py39",
                 "pytorch_version": "2.0.1"
+            },
+            {
+                "device": "gpu",
+                "min_tgi_version": "1.2.0",
+                "max_tgi_version": "1.2.0",
+                "os_version": "ubuntu20.04",
+                "cuda_version": "cu121",
+                "python_version": "py310",
+                "pytorch_version": "2.1.1"
             }
         ],
-        "ignore_vulnerabilities": ["CVE-2023-38545 - libcurl4, curl", "CVE-2023-47248 - pyarrow"],
+        "ignore_vulnerabilities": [],
         "releases": [
             {
                 "device": "gpu",
-                "tgi_version": "1.1.0",
+                "tgi_version": "1.2.0",
                 "os_version": "ubuntu20.04",
-                "cuda_version": "cu118",
-                "python_version": "py39",
-                "pytorch_version": "2.0.1"
+                "cuda_version": "cu121",
+                "python_version": "py310",
+                "pytorch_version": "2.1.1"
             }
         ]
     }
