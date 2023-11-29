@@ -30,7 +30,7 @@ def run_test(args):
 
     signal.signal(signal.SIGALRM, timeout_handler)
     signal.alarm(int(args.timeout))
-
+    predictor = None
     try:
         # Create Hugging Face Model Class
         model = HuggingFaceModel(
