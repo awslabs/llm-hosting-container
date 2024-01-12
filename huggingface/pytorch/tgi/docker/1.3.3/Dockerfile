@@ -244,7 +244,7 @@ RUN HOME_DIR=/root && \
     chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
     ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python && \
     rm -rf ${HOME_DIR}/oss_compliance*
-COPY /huggingface/pytorch/tgi/docker/1.3.3/gpu/THIRD-PARTY-LICENSES /root/THIRD-PARTY-LICENSES
+COPY /huggingface/pytorch/tgi/docker/1.3.3/THIRD-PARTY-LICENSES /root/THIRD-PARTY-LICENSES
 
 RUN /opt/conda/bin/conda clean -py
 
