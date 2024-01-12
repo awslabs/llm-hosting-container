@@ -29,5 +29,20 @@
     ],
     "ignore_vulnerabilities": [],
     "releases": [
+        {
+            "device": "gpu",
+            "version": "1.3.3",
+            "os_version": "ubuntu20.04",
+            "device_version": "cu121",
+            "python_version": "py310",
+            "pytorch_version": "2.1.1"
+        },
+        {
+            "device": "inf2",
+            "version": "0.0.16",
+            "os_version": "ubuntu22.04",
+            "python_version": "py310",
+            "pytorch_version": "1.13.1"
+        }
     ]
 }
