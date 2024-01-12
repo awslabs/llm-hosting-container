@@ -44,7 +44,7 @@ FROM alpine/git AS optimum-neuron
 RUN git clone --depth 1 --branch v0.0.16 https://github.com/huggingface/optimum-neuron.git /optimum-neuron
 
 # Python base image
-# Ubuntu 22.04 has Python 3.11 as default version https://packages.ubuntu.com/jammy/python3
+# Ubuntu 22.04 has Python 3.10 as default version https://packages.ubuntu.com/jammy/python3
 FROM ubuntu:22.04 AS base
 
 RUN apt-get update -y \
