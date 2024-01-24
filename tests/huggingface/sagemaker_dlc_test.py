@@ -21,8 +21,9 @@ def timeout_handler(signum, frame):
     raise TimeoutError("Test timed out")
 
 def run_test(args):
-    endpoint_name = args.model_id.replace("/","-") + "-" + time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
     default_env = { "HF_MODEL_ID": args.model_id }
+    if args.model_revision:
+        default_env["HF_MODEL_REVISION"] = args.model_revision
     if args.instance_type.startswith("ml.inf2"):
         default_env["MAX_CONCURRENT_REQUESTS"] = "1"
         default_env["MAX_BATCH_PREFILL_TOKENS"] = "1024"
@@ -37,6 +38,8 @@ def run_test(args):
     predictor = None
     try:
         # Create Hugging Face Model Class
+        endpoint_name = args.model_id.replace("/","-").replace(".", "-")[:40]
+        endpoint_name = endpoint_name + "-" + time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
         model = HuggingFaceModel(
             name=endpoint_name,
             env=default_env,
@@ -60,14 +63,13 @@ def run_test(args):
             predictor.delete_endpoint()
         signal.alarm(0)
 
-@pytest.mark.parametrize("model_id, instance_type", [
-    pytest.param("bigscience/bloom-560m", "ml.g5.12xlarge", marks=pytest.mark.gpu),
-    pytest.param("EleutherAI/gpt-neox-20b", "ml.g5.12xlarge", marks=pytest.mark.gpu),
-    pytest.param("google/flan-t5-xxl", "ml.g5.12xlarge", marks=pytest.mark.gpu),
-    pytest.param("aws-neuron/CodeLlama-7b-hf-neuron-8xlarge", "ml.inf2.8xlarge", marks=pytest.mark.inf2),
-    pytest.param("aws-neuron/Llama-2-7b-hf-neuron-latency", "ml.inf2.48xlarge", marks=pytest.mark.inf2),
+@pytest.mark.parametrize("model_id, model_revision, instance_type", [
+    pytest.param("bigscience/bloom-560m", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
+    pytest.param("EleutherAI/gpt-neox-20b", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
+    pytest.param("google/flan-t5-xxl", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
+    pytest.param("aws-neuron/Mistral-7B-Instruct-v0.1-neuron-1x2048-24-cores", None, "ml.inf2.48xlarge", marks=pytest.mark.inf2),
 ])
-def test(model_id: str, instance_type: str, timeout: str = "1500"):
+def test(model_id: str, model_revision: str, instance_type: str, timeout: str = "1500"):
     image_uri = os.getenv("IMAGE_URI")
     test_role_arn = os.getenv("TEST_ROLE_ARN")
     assert image_uri, f"Please set IMAGE_URI environment variable."
@@ -76,6 +78,7 @@ def test(model_id: str, instance_type: str, timeout: str = "1500"):
         image_uri=image_uri,
         instance_type=instance_type,
         model_id=model_id,
+        model_revision=model_revision,
         role=test_role_arn,
         timeout=timeout)
 
@@ -88,6 +91,7 @@ if __name__ == '__main__':
     arg_parser.add_argument("--image_uri", type=str, required=True)
     arg_parser.add_argument("--instance_type", type=str, required=True)
     arg_parser.add_argument("--model_id", type=str, required=True)
+    arg_parser.add_argument("--model_revision", type=str, required=False)
     arg_parser.add_argument("--role", type=str, required=True)
     arg_parser.add_argument("--timeout", type=str, required=True)
 
