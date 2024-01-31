@@ -65,8 +65,8 @@ def run_test(args):
 
 @pytest.mark.parametrize("model_id, model_revision, instance_type", [
     pytest.param("bigscience/bloom-560m", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
-    pytest.param("EleutherAI/gpt-neox-20b", None, "ml.g5.24xlarge", marks=pytest.mark.gpu),
-    pytest.param("google/flan-t5-xxl", None, "ml.g5.24xlarge", marks=pytest.mark.gpu),
+    pytest.param("EleutherAI/gpt-neox-20b", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
+    pytest.param("google/flan-t5-xxl", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
     pytest.param("aws-neuron/Mistral-7B-Instruct-v0.1-neuron-1x2048-24-cores", None, "ml.inf2.48xlarge", marks=pytest.mark.inf2),
 ])
 def test(model_id: str, model_revision: str, instance_type: str, timeout: str = "1500"):
