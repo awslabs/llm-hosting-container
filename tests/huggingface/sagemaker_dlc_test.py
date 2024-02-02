@@ -52,7 +52,7 @@ def run_test(args):
         predictor = model.deploy(instance_type=args.instance_type,
                                  initial_instance_count=1,
                                  endpoint_name=endpoint_name,
-                                 container_startup_health_check_timeout=18000
+                                 container_startup_health_check_timeout=3600
         )
         logging.info("Endpoint deployment complete.")
 
