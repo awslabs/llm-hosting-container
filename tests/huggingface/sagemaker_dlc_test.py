@@ -31,10 +31,7 @@ def run_test(args):
         default_env["MAX_TOTAL_TOKENS"] = "2048"
         default_env["MAX_BATCH_TOTAL_TOKENS"] = "2048"
     else:
-        if args.instance_type == "ml.g5.48xlarge":
-            default_env["SM_NUM_GPUS"] = "8"
-        else:
-            default_env["SM_NUM_GPUS"] = "4"
+        default_env["SM_NUM_GPUS"] = "4"
 
     signal.signal(signal.SIGALRM, timeout_handler)
     signal.alarm(int(args.timeout))
@@ -52,7 +49,7 @@ def run_test(args):
         predictor = model.deploy(instance_type=args.instance_type,
                                  initial_instance_count=1,
                                  endpoint_name=endpoint_name,
-                                 container_startup_health_check_timeout=3600
+                                 container_startup_health_check_timeout=1800
         )
         logging.info("Endpoint deployment complete.")
 
@@ -66,13 +63,13 @@ def run_test(args):
             predictor.delete_endpoint()
         signal.alarm(0)
 
-@pytest.mark.parametrize("model_id, model_revision, instance_type, timeout", [
-    pytest.param("bigscience/bloom-560m", None, "ml.g5.12xlarge", "1500", marks=pytest.mark.gpu),
-    pytest.param("EleutherAI/gpt-neox-20b", None, "ml.g5.48xlarge",  "30000", marks=pytest.mark.gpu),
-    pytest.param("google/flan-t5-xxl", None, "ml.g5.48xlarge", "30000",  marks=pytest.mark.gpu),
-    pytest.param("aws-neuron/Mistral-7B-Instruct-v0.1-neuron-1x2048-24-cores", None, "ml.inf2.48xlarge",  "1500", marks=pytest.mark.inf2),
+@pytest.mark.parametrize("model_id, model_revision, instance_type", [
+    pytest.param("bigscience/bloom-560m", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
+    pytest.param("EleutherAI/gpt-neox-20b", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
+    pytest.param("google/flan-t5-xxl", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
+    pytest.param("aws-neuron/Mistral-7B-Instruct-v0.1-neuron-1x2048-24-cores", None, "ml.inf2.48xlarge", marks=pytest.mark.inf2),
 ])
-def test(model_id: str, model_revision: str, instance_type: str, timeout: str):
+def test(model_id: str, model_revision: str, instance_type: str, timeout: str = "1500"):
     image_uri = os.getenv("IMAGE_URI")
     test_role_arn = os.getenv("TEST_ROLE_ARN")
     assert image_uri, f"Please set IMAGE_URI environment variable."
