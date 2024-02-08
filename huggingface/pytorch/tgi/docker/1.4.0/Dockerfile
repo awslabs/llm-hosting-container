@@ -1,11 +1,13 @@
 # Rust builder
-FROM lukemathwalker/cargo-chef:latest-rust-1.71 AS chef
+# https://hub.docker.com/r/lukemathwalker/cargo-chef/tags?page=1&name=latest-rust-1.75
+FROM lukemathwalker/cargo-chef:latest-rust-1.75 AS chef
 WORKDIR /usr/src
 
 ARG CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
 
 FROM chef as planner
 COPY Cargo.toml Cargo.toml
+COPY Cargo.lock Cargo.lock
 COPY rust-toolchain.toml rust-toolchain.toml
 COPY proto proto
 COPY benchmark benchmark
@@ -28,6 +30,7 @@ COPY --from=planner /usr/src/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 
 COPY Cargo.toml Cargo.toml
+COPY Cargo.lock Cargo.lock
 COPY rust-toolchain.toml rust-toolchain.toml
 COPY proto proto
 COPY benchmark benchmark
