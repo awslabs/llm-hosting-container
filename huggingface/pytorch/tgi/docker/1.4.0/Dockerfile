@@ -1,6 +1,5 @@
 # Rust builder
-# https://hub.docker.com/r/lukemathwalker/cargo-chef/tags?page=1&name=latest-rust-1.75
-FROM lukemathwalker/cargo-chef:latest-rust-1.75 AS chef
+FROM lukemathwalker/cargo-chef:latest-rust-1.71 AS chef
 WORKDIR /usr/src
 
 ARG CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
