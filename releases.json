@@ -21,7 +21,7 @@
         {
             "device": "inf2",
             "min_version": "0.0.16",
-            "max_version": "0.0.17",
+            "max_version": "0.0.18",
             "os_version": "ubuntu22.04",
             "python_version": "py310",
             "pytorch_version": "1.13.1"
