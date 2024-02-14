@@ -115,7 +115,7 @@ COPY --from=optimum-neuron /optimum-neuron optimum-neuron
 RUN pip3 install ./optimum-neuron
 
 # TGI base env
-ENV HUGGINGFACE_HUB_CACHE=/tmp \
+ENV HUGGINGFACE_HUB_CACHE=/data \
     HF_HUB_ENABLE_HF_TRANSFER=1 \
     PORT=80
 
