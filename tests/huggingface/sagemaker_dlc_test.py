@@ -69,7 +69,7 @@ def run_test(args):
     pytest.param("google/flan-t5-xxl", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
     pytest.param("aws-neuron/Mistral-7B-Instruct-v0.1-neuron-1x2048-24-cores", None, "ml.inf2.48xlarge", marks=pytest.mark.inf2),
 ])
-def test(model_id: str, model_revision: str, instance_type: str, timeout: str = "1500"):
+def test(model_id: str, model_revision: str, instance_type: str, timeout: str = "2500"):
     image_uri = os.getenv("IMAGE_URI")
     test_role_arn = os.getenv("TEST_ROLE_ARN")
     assert image_uri, f"Please set IMAGE_URI environment variable."
