@@ -12,7 +12,7 @@
         {
             "device": "gpu",
             "min_version": "1.2.0",
-            "max_version": "1.4.0",
+            "max_version": "1.4.2",
             "os_version": "ubuntu20.04",
             "cuda_version": "cu121",
             "python_version": "py310",
@@ -30,11 +30,12 @@
     "ignore_vulnerabilities": [],
     "releases": [
         {
-            "device": "inf2",
-            "version": "0.0.18",
-            "os_version": "ubuntu22.04",
+            "device": "gpu",
+            "version": "1.4.2",
+            "os_version": "ubuntu20.04",
+            "cuda_version": "cu121",
             "python_version": "py310",
-            "pytorch_version": "1.13.1"
+            "pytorch_version": "2.1.1"
         }
     ]
 }
