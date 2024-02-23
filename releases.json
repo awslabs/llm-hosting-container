@@ -12,8 +12,17 @@
         {
             "device": "gpu",
             "min_version": "1.2.0",
-            "max_version": "1.4.2",
+            "max_version": "1.4.0",
             "os_version": "ubuntu20.04",
+            "cuda_version": "cu121",
+            "python_version": "py310",
+            "pytorch_version": "2.1.1"
+        },
+        {
+            "device": "gpu",
+            "min_version": "1.4.2",
+            "max_version": "1.4.2",
+            "os_version": "ubuntu22.04",
             "cuda_version": "cu121",
             "python_version": "py310",
             "pytorch_version": "2.1.1"
