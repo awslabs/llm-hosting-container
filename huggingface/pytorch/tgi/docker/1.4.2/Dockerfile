@@ -1,4 +1,3 @@
-# Rust builder
 FROM lukemathwalker/cargo-chef:latest-rust-1.75 AS chef
 WORKDIR /usr/src
 
@@ -6,8 +5,6 @@ ARG CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
 
 FROM chef as planner
 COPY Cargo.toml Cargo.toml
-# Use pinned versions
-COPY Cargo.lock Cargo.lock
 COPY rust-toolchain.toml rust-toolchain.toml
 COPY proto proto
 COPY benchmark benchmark
@@ -30,7 +27,6 @@ COPY --from=planner /usr/src/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 
 COPY Cargo.toml Cargo.toml
-COPY Cargo.lock Cargo.lock
 COPY rust-toolchain.toml rust-toolchain.toml
 COPY proto proto
 COPY benchmark benchmark
@@ -40,7 +36,7 @@ RUN cargo build --release
 
 # Python builder
 # Adapted from: https://github.com/pytorch/pytorch/blob/master/Dockerfile
-FROM nvidia/cuda:12.1.0-devel-ubuntu20.04 as pytorch-install
+FROM nvidia/cuda:12.1.0-devel-ubuntu22.04 as pytorch-install
 
 ARG PYTORCH_VERSION=2.1.1
 ARG PYTHON_VERSION=3.10
@@ -55,18 +51,18 @@ ARG TARGETPLATFORM
 ENV PATH /opt/conda/bin:$PATH
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    build-essential \
-    ca-certificates \
-    ccache \
-    curl \
-    git && \
-    rm -rf /var/lib/apt/lists/*
+        build-essential \
+        ca-certificates \
+        ccache \
+        curl \
+        git && \
+        rm -rf /var/lib/apt/lists/*
 
 # Install conda
 # translating Docker's TARGETPLATFORM into mamba arches
 RUN case ${TARGETPLATFORM} in \
-    "linux/arm64")  MAMBA_ARCH=aarch64  ;; \
-    *)              MAMBA_ARCH=x86_64   ;; \
+         "linux/arm64")  MAMBA_ARCH=aarch64  ;; \
+         *)              MAMBA_ARCH=x86_64   ;; \
     esac && \
     curl -fsSL -v -o ~/mambaforge.sh -O  "https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-${MAMBA_ARCH}.sh"
 RUN chmod +x ~/mambaforge.sh && \
@@ -76,9 +72,9 @@ RUN chmod +x ~/mambaforge.sh && \
 # Install pytorch
 # On arm64 we exit with an error code
 RUN case ${TARGETPLATFORM} in \
-    "linux/arm64")  exit 1 ;; \
-    *)              /opt/conda/bin/conda update -y conda &&  \
-    /opt/conda/bin/conda install -c "${INSTALL_CHANNEL}" -c "${CUDA_CHANNEL}" -y "python=${PYTHON_VERSION}" "pytorch=$PYTORCH_VERSION" "pytorch-cuda=$(echo $CUDA_VERSION | cut -d'.' -f 1-2)"  ;; \
+         "linux/arm64")  exit 1 ;; \
+         *)              /opt/conda/bin/conda update -y conda &&  \
+                         /opt/conda/bin/conda install -c "${INSTALL_CHANNEL}" -c "${CUDA_CHANNEL}" -y "python=${PYTHON_VERSION}" "pytorch=$PYTORCH_VERSION" "pytorch-cuda=$(echo $CUDA_VERSION | cut -d'.' -f 1-2)"  ;; \
     esac && \
     /opt/conda/bin/conda clean -ya
 
@@ -88,8 +84,8 @@ FROM pytorch-install as kernel-builder
 ARG MAX_JOBS=8
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    ninja-build \
-    && rm -rf /var/lib/apt/lists/*
+        ninja-build \
+        && rm -rf /var/lib/apt/lists/*
 
 # Build Flash Attention CUDA kernels
 FROM kernel-builder as flash-att-builder
@@ -157,13 +153,19 @@ COPY server/Makefile-vllm Makefile
 # Build specific version of vllm
 RUN make build-vllm-cuda
 
+# Build mamba kernels
+FROM kernel-builder as mamba-builder
+WORKDIR /usr/src
+COPY server/Makefile-selective-scan Makefile
+RUN make build-all
+
 # Build megablocks
 FROM kernel-builder as megablocks-builder
 
 RUN pip install git+https://github.com/OlivierDehaene/megablocks@181709df192de9a941fdf3a641cdc65a0462996e
 
 # Text Generation Inference base image
-FROM nvidia/cuda:12.1.0-base-ubuntu20.04 as base
+FROM nvidia/cuda:12.1.0-base-ubuntu22.04 as base
 
 # Conda env
 ENV PATH=/opt/conda/bin:$PATH \
@@ -177,12 +179,11 @@ ENV HUGGINGFACE_HUB_CACHE=/tmp \
 WORKDIR /usr/src
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    libssl-dev \
-    ca-certificates \
-    make \
-    unzip \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+        libssl-dev \
+        ca-certificates \
+        make \
+        curl \
+        && rm -rf /var/lib/apt/lists/*
 
 # Copy conda with PyTorch and Megablocks installed
 COPY --from=megablocks-builder /opt/conda /opt/conda
@@ -209,6 +210,10 @@ COPY --from=eetq-kernels-builder /usr/src/eetq/build/lib.linux-x86_64-cpython-31
 # Copy builds artifacts from vllm builder
 COPY --from=vllm-builder /usr/src/vllm/build/lib.linux-x86_64-cpython-310 /opt/conda/lib/python3.10/site-packages
 
+# Copy build artifacts from mamba builder
+COPY --from=mamba-builder /usr/src/mamba/build/lib.linux-x86_64-cpython-310/ /opt/conda/lib/python3.10/site-packages
+COPY --from=mamba-builder /usr/src/causal-conv1d/build/lib.linux-x86_64-cpython-310/ /opt/conda/lib/python3.10/site-packages
+
 # Install flash-attention dependencies
 RUN pip install einops --no-cache-dir
 
@@ -219,7 +224,7 @@ COPY server/Makefile server/Makefile
 RUN cd server && \
     make gen-server && \
     pip install -r requirements_cuda.txt && \
-    pip install ".[bnb, accelerate, quantize, peft]" --no-cache-dir
+    pip install ".[bnb, accelerate, quantize, peft, outlines]" --no-cache-dir
 
 # Install benchmarker
 COPY --from=builder /usr/src/target/release/text-generation-benchmark /usr/local/bin/text-generation-benchmark
@@ -229,9 +234,9 @@ COPY --from=builder /usr/src/target/release/text-generation-router /usr/local/bi
 COPY --from=builder /usr/src/target/release/text-generation-launcher /usr/local/bin/text-generation-launcher
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    build-essential \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
+        build-essential \
+        g++ \
+        && rm -rf /var/lib/apt/lists/*
 
 # AWS Sagemaker compatible image
 FROM base as sagemaker
