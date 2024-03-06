@@ -25,11 +25,15 @@ def run_test(args):
     if args.model_revision:
         default_env["HF_MODEL_REVISION"] = args.model_revision
     if args.instance_type.startswith("ml.inf2"):
+        default_env["HF_BATCH_SIZE"] = "1"
+        default_env["HF_NUM_CORES"] = "2"
+        default_env["HF_SEQUENCE_LENGTH"] = "4096"
+        default_env["HF_AUTO_CAST_TYPE"] = "bf16"
         default_env["MAX_CONCURRENT_REQUESTS"] = "1"
-        default_env["MAX_BATCH_PREFILL_TOKENS"] = "1024"
-        default_env["MAX_INPUT_LENGTH"] = "1024"
-        default_env["MAX_TOTAL_TOKENS"] = "2048"
-        default_env["MAX_BATCH_TOTAL_TOKENS"] = "2048"
+        default_env["MAX_BATCH_PREFILL_TOKENS"] = "2048"
+        default_env["MAX_INPUT_LENGTH"] = "2048"
+        default_env["MAX_TOTAL_TOKENS"] = "4096"
+        default_env["MAX_BATCH_TOTAL_TOKENS"] = "4096"
     else:
         default_env["SM_NUM_GPUS"] = "4"
 
@@ -49,11 +53,15 @@ def run_test(args):
         predictor = model.deploy(instance_type=args.instance_type,
                                  initial_instance_count=1,
                                  endpoint_name=endpoint_name,
-                                 container_startup_health_check_timeout=1800
+                                 container_startup_health_check_timeout=1800,
+                                 volume_size=256,
         )
         logging.info("Endpoint deployment complete.")
 
-        data = {"inputs": "What is Deep Learning?"}
+        data = {
+            "inputs": "What is Deep Learning?",
+            "parameters": {"max_new_tokens": 50, "top_k": 50, "top_p": 0.95, "do_sample": True},
+        }
         output = predictor.predict(data)
         logging.info("Output: " + json.dumps(output))
         assert "generated_text" in output[0]
@@ -67,9 +75,9 @@ def run_test(args):
     pytest.param("bigscience/bloom-560m", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
     pytest.param("EleutherAI/gpt-neox-20b", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
     pytest.param("google/flan-t5-xxl", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
-    pytest.param("aws-neuron/Mistral-7B-Instruct-v0.1-neuron-1x2048-24-cores", None, "ml.inf2.48xlarge", marks=pytest.mark.inf2),
+    pytest.param("HuggingFaceH4/zephyr-7b-beta", None, "ml.inf2.48xlarge", marks=pytest.mark.inf2),
 ])
-def test(model_id: str, model_revision: str, instance_type: str, timeout: str = "1500"):
+def test(model_id: str, model_revision: str, instance_type: str, timeout: str = "1800"):
     image_uri = os.getenv("IMAGE_URI")
     test_role_arn = os.getenv("TEST_ROLE_ARN")
     assert image_uri, f"Please set IMAGE_URI environment variable."
