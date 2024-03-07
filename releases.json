@@ -30,7 +30,7 @@
         {
             "device": "inf2",
             "min_version": "0.0.16",
-            "max_version": "0.0.18",
+            "max_version": "0.0.19",
             "os_version": "ubuntu22.04",
             "python_version": "py310",
             "pytorch_version": "1.13.1"
@@ -39,12 +39,11 @@
     "ignore_vulnerabilities": [],
     "releases": [
         {
-            "device": "gpu",
-            "version": "1.4.2",
+            "device": "inf2",
+            "version": "0.0.19",
             "os_version": "ubuntu22.04",
-            "cuda_version": "cu121",
             "python_version": "py310",
-            "pytorch_version": "2.1.1"
+            "pytorch_version": "1.13.1"
         }
     ]
 }
