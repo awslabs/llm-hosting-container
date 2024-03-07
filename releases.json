@@ -30,7 +30,7 @@
         {
             "device": "inf2",
             "min_version": "0.0.16",
-            "max_version": "0.0.19",
+            "max_version": "0.0.20",
             "os_version": "ubuntu22.04",
             "python_version": "py310",
             "pytorch_version": "1.13.1"
@@ -40,7 +40,7 @@
     "releases": [
         {
             "device": "inf2",
-            "version": "0.0.19",
+            "version": "0.0.20",
             "os_version": "ubuntu22.04",
             "python_version": "py310",
             "pytorch_version": "1.13.1"
