@@ -28,7 +28,7 @@ def run_test(args):
         default_env["HF_BATCH_SIZE"] = "1"
         default_env["HF_NUM_CORES"] = "2"
         default_env["HF_SEQUENCE_LENGTH"] = "4096"
-        default_env["HF_AUTO_CAST_TYPE"] = "bf16"
+        default_env["HF_AUTO_CAST_TYPE"] = "fp16"
         default_env["MAX_CONCURRENT_REQUESTS"] = "1"
         default_env["MAX_BATCH_PREFILL_TOKENS"] = "2048"
         default_env["MAX_INPUT_LENGTH"] = "2048"
@@ -75,7 +75,7 @@ def run_test(args):
     pytest.param("bigscience/bloom-560m", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
     pytest.param("EleutherAI/gpt-neox-20b", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
     pytest.param("google/flan-t5-xxl", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
-    pytest.param("HuggingFaceH4/zephyr-7b-beta", None, "ml.inf2.48xlarge", marks=pytest.mark.inf2),
+    pytest.param("NousResearch/Llama-2-7b-chat-hf", None, "ml.inf2.48xlarge", marks=pytest.mark.inf2),
 ])
 def test(model_id: str, model_revision: str, instance_type: str, timeout: str = "1800"):
     image_uri = os.getenv("IMAGE_URI")
