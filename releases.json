@@ -21,7 +21,7 @@
         {
             "device": "gpu",
             "min_version": "1.4.2",
-            "max_version": "1.4.2",
+            "max_version": "1.4.5",
             "os_version": "ubuntu22.04",
             "cuda_version": "cu121",
             "python_version": "py310",
