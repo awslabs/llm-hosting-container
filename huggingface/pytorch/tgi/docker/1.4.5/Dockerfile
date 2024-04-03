@@ -4,7 +4,7 @@ WORKDIR /usr/src
 ARG CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
 
 FROM chef as planner
-COPY Cargo.toml Cargo.toml
+COPY Cargo.lock Cargo.lock
 COPY rust-toolchain.toml rust-toolchain.toml
 COPY proto proto
 COPY benchmark benchmark
