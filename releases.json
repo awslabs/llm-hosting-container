@@ -39,13 +39,6 @@
     "ignore_vulnerabilities": [],
     "releases": [
         {
-            "device": "inf2",
-            "version": "0.0.20",
-            "os_version": "ubuntu22.04",
-            "python_version": "py310",
-            "pytorch_version": "1.13.1"
-        },
-        {
             "device": "gpu",
             "version": "1.4.5",
             "os_version": "ubuntu22.04",
