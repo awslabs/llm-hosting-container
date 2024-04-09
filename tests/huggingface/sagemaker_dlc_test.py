@@ -50,12 +50,16 @@ def run_test(args):
             role=args.role,
             image_uri=args.image_uri
         )
-        predictor = model.deploy(instance_type=args.instance_type,
-                                 initial_instance_count=1,
-                                 endpoint_name=endpoint_name,
-                                 container_startup_health_check_timeout=1800,
-                                 volume_size=256,
-        )
+        deploy_parameters = {
+            "instance_type": args.instance_type,
+            "initial_instance_count": 1,
+            "endpoint_name": endpoint_name,
+            "container_startup_health_check_timeout": 1800,
+        }
+        if args.instance_type.startswith("ml.inf2"):
+            deploy_parameters["volume_size"] = 256
+        predictor = model.deploy(**deploy_parameters)
+
         logging.info("Endpoint deployment complete.")
 
         data = {
