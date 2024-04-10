@@ -119,6 +119,9 @@ ENV HUGGINGFACE_HUB_CACHE=/tmp \
     HF_HUB_ENABLE_HF_TRANSFER=1 \
     PORT=80
 
+# Disable color logs as they are not supported by CloudWatch
+ENV LOGURU_COLORIZE=NO
+
 # Install router
 COPY --from=builder /usr/src/target/release/text-generation-router /usr/local/bin/text-generation-router
 # Install launcher
