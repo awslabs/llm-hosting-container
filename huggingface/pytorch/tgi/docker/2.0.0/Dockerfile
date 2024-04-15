@@ -168,7 +168,7 @@ ENV PATH=/opt/conda/bin:$PATH \
     CONDA_PREFIX=/opt/conda
 
 # Text Generation Inference base env
-ENV HUGGINGFACE_HUB_CACHE=/data \
+ENV HUGGINGFACE_HUB_CACHE=/tmp \
     HF_HUB_ENABLE_HF_TRANSFER=1 \
     PORT=80
 
@@ -178,6 +178,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     libssl-dev \
     ca-certificates \
     make \
+    unzip \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -237,15 +238,24 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
 # AWS Sagemaker compatible image
 FROM base as sagemaker
 
-COPY sagemaker-entrypoint.sh entrypoint.sh
-RUN chmod +x entrypoint.sh
+COPY --chmod=775 sagemaker-entrypoint.sh entrypoint.sh
+
+RUN HOME_DIR=/root && \
+    pip install requests && \
+    curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
+    unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ && \
+    cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
+    chmod +x /usr/local/bin/testOSSCompliance && \
+    chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
+    ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python && \
+    rm -rf ${HOME_DIR}/oss_compliance*
+COPY /huggingface/pytorch/tgi/docker/2.0.0/THIRD-PARTY-LICENSES /root/THIRD-PARTY-LICENSES
+
+RUN /opt/conda/bin/conda clean -py
 
 ENTRYPOINT ["./entrypoint.sh"]
-
-# Final image
-FROM base
-
-COPY ./tgi-entrypoint.sh /tgi-entrypoint.sh
-
-ENTRYPOINT ["/tgi-entrypoint.sh"]
 CMD ["--json-output"]
+
+LABEL dlc_major_version="1"
+LABEL com.amazonaws.ml.engines.sagemaker.dlc.framework.huggingface.tgi="true"
+LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port="true"
