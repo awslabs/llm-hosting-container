@@ -69,7 +69,7 @@ RUN cargo build --release --bin text-embeddings-router -F grpc -F candle -F mkl-
 
 FROM debian:bookworm-slim as base
 
-ENV HUGGINGFACE_HUB_CACHE=/data \
+ENV HUGGINGFACE_HUB_CACHE=/tmp \
   PORT=80 \
   MKL_ENABLE_INSTRUCTIONS=AVX512_E4 \
   RAYON_NUM_THREADS=8 \

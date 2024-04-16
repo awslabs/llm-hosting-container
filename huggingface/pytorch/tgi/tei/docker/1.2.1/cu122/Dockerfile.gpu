@@ -46,12 +46,7 @@ COPY --from=planner /usr/src/recipe.json recipe.json
 
 FROM builder as builder-75
 
-RUN if [ $VERTEX = "true" ]; \
-    then \
-    CUDA_COMPUTE_CAP=75 cargo chef cook --release --features google --features candle-cuda-turing --no-default-features --recipe-path recipe.json && sccache -s; \
-    else \
-    CUDA_COMPUTE_CAP=75 cargo chef cook --release --features candle-cuda-turing --no-default-features --recipe-path recipe.json && sccache -s; \
-    fi;
+RUN CUDA_COMPUTE_CAP=75 cargo chef cook --release --features candle-cuda-turing --no-default-features --recipe-path recipe.json && sccache -s
 
 COPY backends backends
 COPY core core
@@ -59,21 +54,11 @@ COPY router router
 COPY Cargo.toml ./
 COPY Cargo.lock ./
 
-RUN if [ $VERTEX = "true" ]; \
-    then \
-    CUDA_COMPUTE_CAP=75 cargo build --release --bin text-embeddings-router -F candle-cuda-turing -F http -F google --no-default-features && sccache -s; \
-    else \
-    CUDA_COMPUTE_CAP=75 cargo build --release --bin text-embeddings-router -F candle-cuda-turing -F http --no-default-features && sccache -s; \
-    fi;
+RUN CUDA_COMPUTE_CAP=75 cargo build --release --bin text-embeddings-router -F candle-cuda-turing -F http --no-default-features && sccache -s
 
 FROM builder as builder-80
 
-RUN if [ $VERTEX = "true" ]; \
-    then \
-    CUDA_COMPUTE_CAP=80 cargo chef cook --release --features google --features candle-cuda-turing --no-default-features --recipe-path recipe.json && sccache -s; \
-    else \
-    CUDA_COMPUTE_CAP=80 cargo chef cook --release --features candle-cuda-turing --no-default-features --recipe-path recipe.json && sccache -s; \
-    fi;
+RUN CUDA_COMPUTE_CAP=80 cargo chef cook --release --features candle-cuda-turing --no-default-features --recipe-path recipe.json && sccache -s
 
 COPY backends backends
 COPY core core
@@ -81,21 +66,11 @@ COPY router router
 COPY Cargo.toml ./
 COPY Cargo.lock ./
 
-RUN if [ $VERTEX = "true" ]; \
-    then \
-    CUDA_COMPUTE_CAP=80 cargo build --release --bin text-embeddings-router -F candle-cuda-turing -F http -F google --no-default-features && sccache -s; \
-    else \
-    CUDA_COMPUTE_CAP=80 cargo build --release --bin text-embeddings-router -F candle-cuda-turing -F http --no-default-features && sccache -s; \
-    fi;
+RUN CUDA_COMPUTE_CAP=80 cargo build --release --bin text-embeddings-router -F candle-cuda-turing -F http --no-default-features && sccache -s
 
 FROM builder as builder-90
 
-RUN if [ $VERTEX = "true" ]; \
-    then \
-    CUDA_COMPUTE_CAP=90 cargo chef cook --release --features google --features candle-cuda-turing --no-default-features --recipe-path recipe.json && sccache -s; \
-    else \
-    CUDA_COMPUTE_CAP=90 cargo chef cook --release --features candle-cuda-turing --no-default-features --recipe-path recipe.json && sccache -s; \
-    fi;
+RUN CUDA_COMPUTE_CAP=90 cargo chef cook --release --features candle-cuda-turing --no-default-features --recipe-path recipe.json && sccache -s
 
 COPY backends backends
 COPY core core
@@ -103,12 +78,7 @@ COPY router router
 COPY Cargo.toml ./
 COPY Cargo.lock ./
 
-RUN if [ $VERTEX = "true" ]; \
-    then \
-    CUDA_COMPUTE_CAP=90 cargo build --release --bin text-embeddings-router -F candle-cuda-turing -F http -F google --no-default-features && sccache -s; \
-    else \
-    CUDA_COMPUTE_CAP=90 cargo build --release --bin text-embeddings-router -F candle-cuda-turing -F http --no-default-features && sccache -s; \
-    fi;
+RUN CUDA_COMPUTE_CAP=90 cargo build --release --bin text-embeddings-router -F candle-cuda-turing -F http --no-default-features && sccache -s
 
 FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04 as base
 
@@ -122,7 +92,6 @@ COPY --from=builder-75 /usr/src/target/release/text-embeddings-router /usr/local
 COPY --from=builder-80 /usr/src/target/release/text-embeddings-router /usr/local/bin/text-embeddings-router-80
 COPY --from=builder-90 /usr/src/target/release/text-embeddings-router /usr/local/bin/text-embeddings-router-90
 
-COPY sagemaker-entrypoint.sh entrypoint.sh
-RUN chmod +x entrypoint.sh
+COPY --chmod=775 sagemaker-entrypoint-cuda-all.sh entrypoint.sh
 
 ENTRYPOINT ["./entrypoint.sh"]
