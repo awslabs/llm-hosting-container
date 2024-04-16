@@ -1,44 +1,58 @@
 {
-    "permitted_combinations": [
-        {
-            "device": "gpu",
-            "min_version": "1.0.0",
-            "max_version": "1.1.0",
-            "os_version": "ubuntu20.04",
-            "cuda_version": "cu118",
-            "python_version": "py39",
-            "pytorch_version": "2.0.1"
-        },
-        {
-            "device": "gpu",
-            "min_version": "1.2.0",
-            "max_version": "1.4.0",
-            "os_version": "ubuntu20.04",
-            "cuda_version": "cu121",
-            "python_version": "py310",
-            "pytorch_version": "2.1.1"
-        },
-        {
-            "device": "gpu",
-            "min_version": "1.4.2",
-            "max_version": "1.4.5",
-            "os_version": "ubuntu22.04",
-            "cuda_version": "cu121",
-            "python_version": "py310",
-            "pytorch_version": "2.1.1"
-        },
-        {
-            "device": "inf2",
-            "min_version": "0.0.16",
-            "max_version": "0.0.21",
-            "os_version": "ubuntu22.04",
-            "python_version": "py310",
-            "pytorch_version": "1.13.1"
-        }
-    ],
+    "permitted_combinations": {
+        "TGI": [
+                {
+                    "device": "gpu",
+                    "min_version": "1.0.0",
+                    "max_version": "1.1.0",
+                    "os_version": "ubuntu20.04",
+                    "cuda_version": "cu118",
+                    "python_version": "py39",
+                    "pytorch_version": "2.0.1"
+                },
+                {
+                    "device": "gpu",
+                    "min_version": "1.2.0",
+                    "max_version": "1.4.0",
+                    "os_version": "ubuntu20.04",
+                    "cuda_version": "cu121",
+                    "python_version": "py310",
+                    "pytorch_version": "2.1.1"
+                },
+                {
+                    "device": "gpu",
+                    "min_version": "1.4.2",
+                    "max_version": "1.4.5",
+                    "os_version": "ubuntu22.04",
+                    "cuda_version": "cu121",
+                    "python_version": "py310",
+                    "pytorch_version": "2.1.1"
+                },
+                {
+                    "device": "inf2",
+                    "min_version": "0.0.16",
+                    "max_version": "0.0.21",
+                    "os_version": "ubuntu22.04",
+                    "python_version": "py310",
+                    "pytorch_version": "1.13.1"
+                }
+        ],
+        "TEI": [
+                {
+                    "device": "gpu",
+                    "min_version": "1.2.1",
+                    "max_version": "1.2.1",
+                    "os_version": "ubuntu22.04",
+                    "cuda_version": "cu122",
+                    "python_version": "py310",
+                    "pytorch_version": "2.0.1"
+                }
+        ]
+    },
     "ignore_vulnerabilities": [],
     "releases": [
         {
+            "framework": "TEI",
             "device": "inf2",
             "version": "0.0.21",
             "os_version": "ubuntu22.04",
