@@ -53,11 +53,11 @@
     "releases": [
         {
             "framework": "TEI",
-            "device": "inf2",
-            "version": "0.0.21",
+            "device": "gpu",
+            "version": "1.2.1",
             "os_version": "ubuntu22.04",
             "python_version": "py310",
-            "pytorch_version": "1.13.1"
+            "pytorch_version": "2.0.1"
         }
     ]
 }
