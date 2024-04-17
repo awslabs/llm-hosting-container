@@ -40,13 +40,21 @@ ARG ACTIONS_CACHE_URL
 ARG ACTIONS_RUNTIME_TOKEN
 ARG SCCACHE_GHA_ENABLED
 
+# limit the number of kernels built at the same time
+ARG RAYON_NUM_THREADS=2
+
 WORKDIR /usr/src
 
 COPY --from=planner /usr/src/recipe.json recipe.json
 
 FROM builder as builder-75
 
-RUN CUDA_COMPUTE_CAP=75 cargo chef cook --release --features candle-cuda-turing --no-default-features --recipe-path recipe.json && sccache -s
+RUN if [ $VERTEX = "true" ]; \
+    then \
+      CUDA_COMPUTE_CAP=75 cargo chef cook --release --features google --features candle-cuda-turing --features http --no-default-features --recipe-path recipe.json && sccache -s; \
+    else \
+      CUDA_COMPUTE_CAP=75 cargo chef cook --release --features candle-cuda-turing --no-default-features --features http --recipe-path recipe.json && sccache -s; \
+    fi;
 
 COPY backends backends
 COPY core core
@@ -54,11 +62,21 @@ COPY router router
 COPY Cargo.toml ./
 COPY Cargo.lock ./
 
-RUN CUDA_COMPUTE_CAP=75 cargo build --release --bin text-embeddings-router -F candle-cuda-turing -F http --no-default-features && sccache -s
+RUN if [ $VERTEX = "true" ]; \
+    then \
+        CUDA_COMPUTE_CAP=75 cargo build --release --bin text-embeddings-router -F candle-cuda-turing -F http -F google --no-default-features && sccache -s; \
+    else \
+        CUDA_COMPUTE_CAP=75 cargo build --release --bin text-embeddings-router -F candle-cuda-turing -F http --no-default-features && sccache -s; \
+    fi;
 
 FROM builder as builder-80
 
-RUN CUDA_COMPUTE_CAP=80 cargo chef cook --release --features candle-cuda-turing --no-default-features --recipe-path recipe.json && sccache -s
+RUN if [ $VERTEX = "true" ]; \
+    then \
+      CUDA_COMPUTE_CAP=80 cargo chef cook --release --features google --features candle-cuda --features http --no-default-features --recipe-path recipe.json && sccache -s; \
+    else \
+      CUDA_COMPUTE_CAP=80 cargo chef cook --release --features candle-cuda --no-default-features --features http --recipe-path recipe.json && sccache -s; \
+    fi;
 
 COPY backends backends
 COPY core core
@@ -66,11 +84,21 @@ COPY router router
 COPY Cargo.toml ./
 COPY Cargo.lock ./
 
-RUN CUDA_COMPUTE_CAP=80 cargo build --release --bin text-embeddings-router -F candle-cuda-turing -F http --no-default-features && sccache -s
+RUN if [ $VERTEX = "true" ]; \
+    then \
+        CUDA_COMPUTE_CAP=80 cargo build --release --bin text-embeddings-router -F candle-cuda -F http -F google --no-default-features && sccache -s; \
+    else \
+        CUDA_COMPUTE_CAP=80 cargo build --release --bin text-embeddings-router -F candle-cuda -F http --no-default-features && sccache -s; \
+    fi;
 
 FROM builder as builder-90
 
-RUN CUDA_COMPUTE_CAP=90 cargo chef cook --release --features candle-cuda-turing --no-default-features --recipe-path recipe.json && sccache -s
+RUN if [ $VERTEX = "true" ]; \
+    then \
+      CUDA_COMPUTE_CAP=90 cargo chef cook --release --features google --features candle-cuda --features http --no-default-features --recipe-path recipe.json && sccache -s; \
+    else \
+      CUDA_COMPUTE_CAP=90 cargo chef cook --release --features candle-cuda --features http --no-default-features --recipe-path recipe.json && sccache -s; \
+    fi;
 
 COPY backends backends
 COPY core core
@@ -78,23 +106,18 @@ COPY router router
 COPY Cargo.toml ./
 COPY Cargo.lock ./
 
-RUN CUDA_COMPUTE_CAP=90 cargo build --release --bin text-embeddings-router -F candle-cuda-turing -F http --no-default-features && sccache -s
+RUN if [ $VERTEX = "true" ]; \
+    then \
+        CUDA_COMPUTE_CAP=90 cargo build --release --bin text-embeddings-router -F candle-cuda -F http -F google --no-default-features && sccache -s; \
+    else \
+        CUDA_COMPUTE_CAP=90 cargo build --release --bin text-embeddings-router -F candle-cuda -F http --no-default-features && sccache -s; \
+    fi;
 
 FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04 as base
 
-RUN HOME_DIR=/root && \
-    pip install requests && \
-    curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
-    unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ && \
-    cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
-    chmod +x /usr/local/bin/testOSSCompliance && \
-    chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
-    ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python && \
-    rm -rf ${HOME_DIR}/oss_compliance*
-
 ARG DEFAULT_USE_FLASH_ATTENTION=True
 
-ENV HUGGINGFACE_HUB_CACHE=/tmp \
+ENV HUGGINGFACE_HUB_CACHE=/data \
     PORT=80 \
     USE_FLASH_ATTENTION=$DEFAULT_USE_FLASH_ATTENTION
 
@@ -102,6 +125,17 @@ COPY --from=builder-75 /usr/src/target/release/text-embeddings-router /usr/local
 COPY --from=builder-80 /usr/src/target/release/text-embeddings-router /usr/local/bin/text-embeddings-router-80
 COPY --from=builder-90 /usr/src/target/release/text-embeddings-router /usr/local/bin/text-embeddings-router-90
 
+# Amazon SageMaker compatible image
+FROM base AS sagemaker
+
 COPY --chmod=775 sagemaker-entrypoint-cuda-all.sh entrypoint.sh
 
 ENTRYPOINT ["./entrypoint.sh"]
+
+# Default image
+FROM base
+
+COPY --chmod=775 cuda-all-entrypoint.sh entrypoint.sh
+
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["--json-output"]
