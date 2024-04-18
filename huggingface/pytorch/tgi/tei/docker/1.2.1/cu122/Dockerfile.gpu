@@ -74,7 +74,7 @@ RUN CUDA_COMPUTE_CAP=80 cargo build --release --bin text-embeddings-router -F ca
 
 FROM builder as builder-90
 
-RUN CUDA_COMPUTE_CAP=90 cargo chef cook --release --features candle-cuda-turing --no-default-features --recipe-path recipe.json && sccache -s
+RUN CUDA_COMPUTE_CAP=90 cargo chef cook --release --features candle-cuda --features http --no-default-features --recipe-path recipe.json && sccache -s
 
 COPY backends backends
 COPY core core
