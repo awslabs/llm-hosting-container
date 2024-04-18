@@ -50,7 +50,7 @@ COPY --from=planner /usr/src/recipe.json recipe.json
 
 FROM builder as builder-75
 
-RUN CUDA_COMPUTE_CAP=75 cargo chef cook --release --features candle-cuda-turing --no-default-features --recipe-path recipe.json && sccache -s
+RUN CUDA_COMPUTE_CAP=75 cargo chef cook --release --features candle-cuda-turing --features http --no-default-features --recipe-path recipe.json && sccache -s
 
 COPY backends backends
 COPY core core
