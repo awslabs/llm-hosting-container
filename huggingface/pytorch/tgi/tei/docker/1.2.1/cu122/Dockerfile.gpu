@@ -70,7 +70,7 @@ COPY router router
 COPY Cargo.toml ./
 COPY Cargo.lock ./
 
-RUN CUDA_COMPUTE_CAP=80 cargo build --release --bin text-embeddings-router -F candle-cuda-turing -F http --no-default-features && sccache -s
+RUN CUDA_COMPUTE_CAP=80 cargo build --release --bin text-embeddings-router -F candle-cuda -F http --no-default-features && sccache -s
 
 FROM builder as builder-90
 
