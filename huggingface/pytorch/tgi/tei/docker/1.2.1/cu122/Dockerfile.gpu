@@ -40,6 +40,10 @@ ARG ACTIONS_CACHE_URL
 ARG ACTIONS_RUNTIME_TOKEN
 ARG SCCACHE_GHA_ENABLED
 
+# limit the number of kernels built at the same time
+ARG RAYON_NUM_THREADS=2
+
+
 WORKDIR /usr/src
 
 COPY --from=planner /usr/src/recipe.json recipe.json
