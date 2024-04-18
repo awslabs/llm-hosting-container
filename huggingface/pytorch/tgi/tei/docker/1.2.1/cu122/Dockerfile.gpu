@@ -92,6 +92,9 @@ COPY --from=builder-75 /usr/src/target/release/text-embeddings-router /usr/local
 COPY --from=builder-80 /usr/src/target/release/text-embeddings-router /usr/local/bin/text-embeddings-router-80
 COPY --from=builder-90 /usr/src/target/release/text-embeddings-router /usr/local/bin/text-embeddings-router-90
 
+# Amazon SageMaker compatible image
+FROM base AS sagemaker
+
 COPY --chmod=775 sagemaker-entrypoint-cuda-all.sh entrypoint.sh
 
 ENTRYPOINT ["./entrypoint.sh"]
