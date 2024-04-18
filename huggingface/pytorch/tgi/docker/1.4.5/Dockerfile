@@ -246,7 +246,7 @@ FROM base as sagemaker
 COPY --chmod=775 sagemaker-entrypoint.sh entrypoint.sh
 
 RUN HOME_DIR=/root && \
-    pip install requests && \
+    pip3 install requests && \
     curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
     unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ && \
     cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
