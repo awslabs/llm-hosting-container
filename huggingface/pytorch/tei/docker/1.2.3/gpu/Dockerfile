@@ -5,6 +5,7 @@ ENV RUSTC_WRAPPER=/usr/local/bin/sccache
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    perl \ # https://ubuntu.com/security/CVE-2022-48522
     curl \
     libssl-dev \
     pkg-config \
