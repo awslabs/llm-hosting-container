@@ -5,7 +5,6 @@ ENV RUSTC_WRAPPER=/usr/local/bin/sccache
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    perl \
     curl \
     libssl-dev \
     pkg-config \
@@ -110,6 +109,8 @@ RUN if [ $VERTEX = "true" ]; \
 RUN mv /usr/src/target/release/text-embeddings-router /usr/src/target/release/text-embeddings-router-90
 
 FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04 as base
+
+RUN apt-get update && apt-get install -y libtemplate-perl perl
 
 ARG DEFAULT_USE_FLASH_ATTENTION=True
 
