@@ -1,3 +1,4 @@
+# Rust builder
 FROM lukemathwalker/cargo-chef:latest-rust-1.75 AS chef
 WORKDIR /usr/src
 
@@ -38,7 +39,7 @@ RUN cargo build --release
 # Adapted from: https://github.com/pytorch/pytorch/blob/master/Dockerfile
 FROM nvidia/cuda:12.1.0-devel-ubuntu22.04 as pytorch-install
 
-ARG PYTORCH_VERSION=2.1.1
+ARG PYTORCH_VERSION=2.3.0
 ARG PYTHON_VERSION=3.10
 # Keep in sync with `server/pyproject.toml
 ARG CUDA_VERSION=12.1
@@ -148,6 +149,8 @@ FROM kernel-builder as vllm-builder
 
 WORKDIR /usr/src
 
+ENV TORCH_CUDA_ARCH_LIST="7.0 7.5 8.0 8.6 8.9 9.0+PTX"
+
 COPY server/Makefile-vllm Makefile
 
 # Build specific version of vllm
@@ -177,7 +180,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     libssl-dev \
     ca-certificates \
     make \
-    unzip \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -210,7 +212,7 @@ COPY --from=vllm-builder /usr/src/vllm/build/lib.linux-x86_64-cpython-310 /opt/c
 COPY --from=mamba-builder /usr/src/mamba/build/lib.linux-x86_64-cpython-310/ /opt/conda/lib/python3.10/site-packages
 COPY --from=mamba-builder /usr/src/causal-conv1d/build/lib.linux-x86_64-cpython-310/ /opt/conda/lib/python3.10/site-packages
 
-# Install vllm/flash-attention dependencies
+# Install flash-attention dependencies
 RUN pip install einops --no-cache-dir
 
 # Install server
@@ -248,7 +250,7 @@ RUN HOME_DIR=/root && \
     chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
     ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python && \
     rm -rf ${HOME_DIR}/oss_compliance*
-COPY /huggingface/pytorch/tgi/docker/2.0.1/THIRD-PARTY-LICENSES /root/THIRD-PARTY-LICENSES
+COPY /huggingface/pytorch/tgi/docker/2.0.2/THIRD-PARTY-LICENSES /root/THIRD-PARTY-LICENSES
 
 RUN /opt/conda/bin/conda clean -py
 
