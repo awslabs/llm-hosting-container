@@ -127,7 +127,7 @@ COPY --from=builder /usr/src/target/release/text-generation-router /usr/local/bi
 COPY --from=builder /usr/src/target/release/text-generation-launcher /usr/local/bin/text-generation-launcher
 # Install python server
 COPY --from=pyserver /pyserver/build/dist dist
-RUN pip install dist/ttext_generation_server*.tar.gz
+RUN pip install dist/text_generation_server*.tar.gz
 
 # AWS Sagemaker compatible image
 FROM neuron as sagemaker
