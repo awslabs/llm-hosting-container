@@ -1,7 +1,7 @@
-# Fetch and extract the TGI sources
+# Fetch and extract the TGI sources (TGI_VERSION is mandatory)
 FROM alpine AS tgi
 RUN mkdir -p /tgi
-ADD https://github.com/huggingface/text-generation-inference/archive/refs/tags/v1.4.1.tar.gz /tgi/sources.tar.gz
+ADD https://github.com/huggingface/text-generation-inference/archive/refs/tags/v2.0.2.tar.gz /tgi/sources.tar.gz
 RUN tar -C /tgi -xf /tgi/sources.tar.gz --strip-components=1
 
 # Build cargo components (adapted from TGI original Dockerfile)
@@ -13,7 +13,6 @@ ARG CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
 
 FROM chef as planner
 COPY --from=tgi /tgi/Cargo.toml Cargo.toml
-COPY --from=tgi /tgi/Cargo.lock Cargo.lock
 COPY --from=tgi /tgi/rust-toolchain.toml rust-toolchain.toml
 COPY --from=tgi /tgi/proto proto
 COPY --from=tgi /tgi/benchmark benchmark
@@ -33,7 +32,6 @@ COPY --from=planner /usr/src/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 
 COPY --from=tgi /tgi/Cargo.toml Cargo.toml
-COPY --from=tgi /tgi/Cargo.lock Cargo.lock
 COPY --from=tgi /tgi/rust-toolchain.toml rust-toolchain.toml
 COPY --from=tgi /tgi/proto proto
 COPY --from=tgi /tgi/benchmark benchmark
@@ -43,13 +41,13 @@ RUN cargo build --release --workspace --exclude benchmark
 
 # Fetch optimum-neuron sources
 FROM alpine/git AS optimum-neuron
-RUN git clone --depth 1 --branch v0.0.21 https://github.com/huggingface/optimum-neuron.git /optimum-neuron
+RUN git clone --depth 1 --branch v0.0.22 https://github.com/huggingface/optimum-neuron.git /optimum-neuron
 
 # Python base image
 FROM ubuntu:22.04 AS base
 
 RUN apt-get update -y \
- && apt-get install -y --no-install-recommends \
+    && apt-get install -y --no-install-recommends \
     python3-pip \
     python3-setuptools \
     python-is-python3 \
@@ -61,7 +59,7 @@ RUN pip3 --no-cache-dir install --upgrade pip
 FROM base AS pyserver
 
 RUN apt-get update -y \
- && apt-get install -y --no-install-recommends \
+    && apt-get install -y --no-install-recommends \
     make \
     python3-venv \
     && rm -rf /var/lib/apt/lists/* \
@@ -79,9 +77,10 @@ FROM base AS neuron
 
 # Install system prerequisites
 RUN apt-get update -y \
- && apt-get install -y --no-install-recommends \
+    && apt-get install -y --no-install-recommends \
     gnupg2 \
     wget \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -90,7 +89,7 @@ RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEU
 
 # Install neuronx packages
 RUN apt-get update -y \
- && apt-get install -y --no-install-recommends \
+    && apt-get install -y --no-install-recommends \
     aws-neuronx-dkms=2.16.7.0 \
     aws-neuronx-collectives=2.20.22.0-c101c322e \
     aws-neuronx-runtime-lib=2.20.22.0-1b3ca6425 \
@@ -102,13 +101,13 @@ ENV PATH="/opt/bin/:/opt/aws/neuron/bin:${PATH}"
 
 RUN pip3 install \
     neuronx-cc==2.13.66.0 \
-    torch-neuronx==1.13.1.1.14.0 \
+    torch-neuronx==2.1.2.2.1.0 \
     transformers-neuronx==0.10.0.21 \
     --extra-index-url=https://pip.repos.neuron.amazonaws.com
 
 # Install HuggingFace packages
 RUN pip3 install \
-    hf_transfer
+    hf_transfer huggingface_hub
 
 # Install optimum-neuron
 COPY --from=optimum-neuron /optimum-neuron optimum-neuron
@@ -152,13 +151,13 @@ RUN HOME_DIR=/root && \
     rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN echo "N.B.: Although this image is released under the Apache-2.0 License, the Dockerfile used to build the image \
-has an indirect documentation dependency on third party <docutils/tools/editors/emacs/rst.el> project. The \
-<docutils/tools/editors/emacs/rst.el> project's licensing includes the <GPL v3> license. \
-\n\n\
-N.B.: Although this image is released under the Apache-2.0 License, the Dockerfile used to build the image uses the \
-third party <Text Generation Inference (TGI)> project. The <Text Generation Inference (TGI)> project's licensing \
-includes the <HFOIL --> https://github.com/huggingface/text-generation-inference/blob/main/LICENSE> \
-license." > /root/THIRD_PARTY_LICENSES
+    has an indirect documentation dependency on third party <docutils/tools/editors/emacs/rst.el> project. The \
+    <docutils/tools/editors/emacs/rst.el> project's licensing includes the <GPL v3> license. \
+    \n\n\
+    N.B.: Although this image is released under the Apache-2.0 License, the Dockerfile used to build the image uses the \
+    third party <Text Generation Inference (TGI)> project. The <Text Generation Inference (TGI)> project's licensing \
+    includes the <HFOIL --> https://github.com/huggingface/text-generation-inference/blob/main/LICENSE> \
+    license." > /root/THIRD_PARTY_LICENSES
 
 LABEL dlc_major_version="1"
 LABEL com.amazonaws.ml.engines.sagemaker.dlc.framework.huggingface.tgi="true"
