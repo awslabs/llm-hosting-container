@@ -34,17 +34,24 @@
             "os_version": "ubuntu22.04",
             "python_version": "py310",
             "pytorch_version": "1.13.1"
+        },
+        {
+            "device": "inf2",
+            "min_version": "0.0.22",
+            "max_version": "0.0.22",
+            "os_version": "ubuntu22.04",
+            "python_version": "py310",
+            "pytorch_version": "2.1.2"
         }
     ],
     "ignore_vulnerabilities": [],
     "releases": [
         {
-            "device": "gpu",
-            "version": "2.0.1",
+            "device": "inf2",
+            "version": "0.0.22",
             "os_version": "ubuntu22.04",
             "python_version": "py310",
-            "cuda_version": "cu121",
-            "pytorch_version": "2.1.1"
+            "pytorch_version": "2.1.2"
         }
     ]
 }
