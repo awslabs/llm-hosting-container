@@ -92,7 +92,7 @@ def test(model_id: str, model_revision: str, instance_type: str, timeout: str = 
         role=test_role_arn,
         timeout=timeout)
 
-    logging.info(f"Running sanity test with the following arguments: {args}.")
+    logging.info(f"Running sanity test with the following args: {args}.")
     run_test(args)
 
 
