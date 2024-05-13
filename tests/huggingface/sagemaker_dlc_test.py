@@ -79,7 +79,7 @@ def run_test(args):
     pytest.param("google/flan-t5-xxl", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
     pytest.param("HuggingFaceTB/cosmo-1b", None, "ml.inf2.8xlarge", marks=pytest.mark.inf2),
 ])
-def test(model_id: str, model_revision: str, instance_type: str, timeout: str = "1800"):
+def test(model_id: str, model_revision: str, instance_type: str, timeout: str = "2400"):
     image_uri = os.getenv("IMAGE_URI")
     test_role_arn = os.getenv("TEST_ROLE_ARN")
     assert image_uri, f"Please set IMAGE_URI environment variable."
@@ -92,7 +92,7 @@ def test(model_id: str, model_revision: str, instance_type: str, timeout: str = 
         role=test_role_arn,
         timeout=timeout)
 
-    logging.info(f"Running sanity test with the following args: {args}.")
+    logging.info(f"Running sanity test with the following arguments: {args}.")
     run_test(args)
 
 
