@@ -1,3 +1,4 @@
+# Use the official NVIDIA CUDA base image
 FROM nvidia/cuda:12.2.0-devel-ubuntu22.04 AS base-builder
 
 ENV SCCACHE=0.5.4
@@ -8,9 +9,11 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     curl \
     libssl-dev \
     pkg-config \
+    wget \
+    gnupg2 \
     && rm -rf /var/lib/apt/lists/*
 
-# Donwload and configure sccache
+# Download and configure sccache
 RUN curl -fsSL https://github.com/mozilla/sccache/releases/download/v$SCCACHE/sccache-v$SCCACHE-x86_64-unknown-linux-musl.tar.gz | tar -xzv --strip-components=1 -C /usr/local/bin sccache-v$SCCACHE-x86_64-unknown-linux-musl/sccache && \
     chmod +x /usr/local/bin/sccache
 
@@ -110,19 +113,17 @@ RUN mv /usr/src/target/release/text-embeddings-router /usr/src/target/release/te
 
 FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04 as base
 
-RUN apt-get update && apt-get install -y libtemplate-perl \ 
-    perl \  
-    wget \
-    gnupg2 \
-    curl \
-    nvidia-driver-470 \
-    nvidia-cuda-toolkit
-
 ARG DEFAULT_USE_FLASH_ATTENTION=True
 
 ENV HUGGINGFACE_HUB_CACHE=/data \
     PORT=80 \
     USE_FLASH_ATTENTION=$DEFAULT_USE_FLASH_ATTENTION
+
+# Install nvidia-smi and other necessary utilities
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    wget \
+    nvidia-utils-470 \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/src/target/release/text-embeddings-router-75 /usr/local/bin/text-embeddings-router-75
 COPY --from=builder /usr/src/target/release/text-embeddings-router-80 /usr/local/bin/text-embeddings-router-80
