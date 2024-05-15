@@ -110,7 +110,13 @@ RUN mv /usr/src/target/release/text-embeddings-router /usr/src/target/release/te
 
 FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04 as base
 
-RUN apt-get update && apt-get install -y libtemplate-perl perl
+RUN apt-get update && apt-get install -y libtemplate-perl \ 
+    perl \  
+    wget \
+    gnupg2 \
+    curl \
+    nvidia-driver-470 \
+    nvidia-cuda-toolkit
 
 ARG DEFAULT_USE_FLASH_ATTENTION=True
 
