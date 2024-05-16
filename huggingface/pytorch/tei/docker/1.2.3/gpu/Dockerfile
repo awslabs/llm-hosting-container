@@ -10,9 +10,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     libssl-dev \
     pkg-config \
     wget \
-    gnupg2 \
-    ca-certificates
-    && rm -rf /var/lib/apt/lists/*
+    gnupg2
 
 # Download and configure sccache
 RUN curl -fsSL https://github.com/mozilla/sccache/releases/download/v$SCCACHE/sccache-v$SCCACHE-x86_64-unknown-linux-musl.tar.gz | tar -xzv --strip-components=1 -C /usr/local/bin sccache-v$SCCACHE-x86_64-unknown-linux-musl/sccache && \
@@ -130,10 +128,7 @@ RUN curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     wget \
     libtemplate-perl \
-    perl \  
-    nvidia-utils-470 \
-    nvidia-cuda-toolkit
-    && rm -rf /var/lib/apt/lists/*
+    perl
 
 COPY --from=builder /usr/src/target/release/text-embeddings-router-75 /usr/local/bin/text-embeddings-router-75
 COPY --from=builder /usr/src/target/release/text-embeddings-router-80 /usr/local/bin/text-embeddings-router-80
@@ -141,6 +136,8 @@ COPY --from=builder /usr/src/target/release/text-embeddings-router-90 /usr/local
 
 # Amazon SageMaker compatible image
 FROM base AS sagemaker
+
+ENV CUDA_COMPUTE_CAP=80
 
 COPY --chmod=775 sagemaker-entrypoint-cuda-all.sh entrypoint.sh
 
