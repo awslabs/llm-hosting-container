@@ -73,27 +73,64 @@ def run_test(args):
             predictor.delete_endpoint()
         signal.alarm(0)
 
-@pytest.mark.parametrize("model_id, model_revision, instance_type", [
-    pytest.param("bigscience/bloom-560m", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
-    pytest.param("EleutherAI/gpt-neox-20b", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
-    pytest.param("google/flan-t5-xxl", None, "ml.g5.12xlarge", marks=pytest.mark.gpu),
-    pytest.param("HuggingFaceTB/cosmo-1b", None, "ml.inf2.8xlarge", marks=pytest.mark.inf2),
-])
-def test(model_id: str, model_revision: str, instance_type: str, timeout: str = "1800"):
+def get_models_for_image(image_type, device_type):
+    if image_type == "TGI":
+        if device_type == "gpu":
+            return [
+                ("bigscience/bloom-560m", None, "ml.g5.12xlarge"),
+                ("EleutherAI/gpt-neox-20b", None, "ml.g5.12xlarge"),
+                ("google/flan-t5-xxl", None, "ml.g5.12xlarge"),
+                ("HuggingFaceTB/cosmo-1b", None, "ml.inf2.8xlarge")
+            ]
+        elif device_type == "inf2":
+            return [ ("HuggingFaceTB/cosmo-1b", None, "ml.inf2.8xlarge") ]
+        else:
+            raise ValueError(f"No testing models found for {image_type} on instance {device_type}. "
+                             f"please check whether the image_type and instance_type are supported.")
+    elif image_type == "TEI":
+        if device_type == "gpu":
+            return [
+                ("BAAI/bge-m3", None, "ml.g5.12xlarge"),
+                ("intfloat/multilingual-e5-base", None, "ml.g5.12xlarge"),
+                ("thenlper/gte-base", None, "ml.g5.12xlarge"),
+                ("sentence-transformers/all-MiniLM-L6-v2", None, "ml.g5.12xlarge")
+            ]
+        elif device_type == "cpu":
+            return [("BAAI/bge-m3", None, "ml.g5.12xlarge")]
+        else:
+            raise ValueError(f"No testing models found for {image_type} on instance {device_type}. "
+                            f"please check whether the image_type and instance_type are supported.")
+    else:
+        raise ValueError("Invalid image type. Supported types are 'TGI' and 'TEI'.")
+
+def should_run_test_for_image(test_image_type, target_image_type):
+    return test_image_type == target_image_type
+
+@pytest.mark.parametrize("image_type", ["TGI", "TEI"])
+def test_models_for_image(image_type, timeout: str = "1800"):
+    test_target_image_type = os.getenv("TARGET_IMAGE_TYPE")
+    if test_target_image_type and not should_run_test_for_image(image_type, test_target_image_type):
+        pytest.skip(f"Skipping test for image type {image_type} as it does not match target image type {test_target_image_type}")
+
     image_uri = os.getenv("IMAGE_URI")
     test_role_arn = os.getenv("TEST_ROLE_ARN")
     assert image_uri, f"Please set IMAGE_URI environment variable."
     assert test_role_arn, f"Please set TEST_ROLE_ARN environment variable."
-    args = argparse.Namespace(
-        image_uri=image_uri,
-        instance_type=instance_type,
-        model_id=model_id,
-        model_revision=model_revision,
-        role=test_role_arn,
-        timeout=timeout)
 
-    logging.info(f"Running sanity test with the following args: {args}.")
-    run_test(args)
+    device_type = os.getenv("DEVICE_TYPE")
+    assert device_type, f"Please set DEVICE_TYPE environment variable."
+    models = get_models_for_image(image_type, device_type)
+    for model_id, model_revision, instance_type in models:
+        args = argparse.Namespace(
+            image_uri=image_uri,
+            instance_type=instance_type,
+            model_id=model_id,
+            model_revision=model_revision,
+            role=test_role_arn,
+            timeout=timeout
+        )
+        logging.info(f"Running sanity test with the following args: {args}.")
+        run_test(args)
 
 
 if __name__ == '__main__':
