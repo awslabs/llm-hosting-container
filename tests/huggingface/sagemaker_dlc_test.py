@@ -103,8 +103,8 @@ def get_models_for_image(image_type, device_type):
     else:
         raise ValueError("Invalid image type. Supported types are 'TGI' and 'TEI'.")
 
-def should_run_test_for_image(test_image_type, target_image_type):
-    return test_image_type == target_image_type
+def should_run_test_for_image(test_type, target_type):
+    return test_type == target_type
 
 @pytest.mark.parametrize("image_type, device_type", [
     pytest.param("TGI", "gpu", marks=pytest.mark.gpu),
@@ -114,8 +114,12 @@ def should_run_test_for_image(test_image_type, target_image_type):
 ])
 def test(image_type, device_type, timeout: str = "3000"):
     test_target_image_type = os.getenv("TARGET_IMAGE_TYPE")
+    test_device_type = os.getenv("DEVICE_TYPE")
     if test_target_image_type and not should_run_test_for_image(image_type, test_target_image_type):
         pytest.skip(f"Skipping test for image type {image_type} as it does not match target image type {test_target_image_type}")
+        
+    if test_device_type and not should_run_test_for_image(device_type, test_device_type):
+        pytest.skip(f"Skipping test for device type {device_type} as it does not match current device type {test_device_type}")
 
     image_uri = os.getenv("IMAGE_URI")
     test_role_arn = os.getenv("TEST_ROLE_ARN")
