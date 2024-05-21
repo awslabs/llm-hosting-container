@@ -106,8 +106,13 @@ def get_models_for_image(image_type, device_type):
 def should_run_test_for_image(test_image_type, target_image_type):
     return test_image_type == target_image_type
 
-@pytest.mark.parametrize("image_type", ["TGI", "TEI"])
-def test_models_for_image(image_type, timeout: str = "1800"):
+@pytest.mark.parametrize("image_type, device_type", [
+    pytest.param("TGI", "gpu", marks=pytest.mark.gpu),
+    pytest.param("TGI", "inf2", marks=pytest.mark.inf2),
+    pytest.param("TEI", "gpu", marks=pytest.mark.gpu),
+    pytest.param("TEI", "cpu", marks=pytest.mark.cpu),
+])
+def test(image_type, device_type, timeout: str = "1800"):
     test_target_image_type = os.getenv("TARGET_IMAGE_TYPE")
     if test_target_image_type and not should_run_test_for_image(image_type, test_target_image_type):
         pytest.skip(f"Skipping test for image type {image_type} as it does not match target image type {test_target_image_type}")
@@ -117,8 +122,6 @@ def test_models_for_image(image_type, timeout: str = "1800"):
     assert image_uri, f"Please set IMAGE_URI environment variable."
     assert test_role_arn, f"Please set TEST_ROLE_ARN environment variable."
 
-    device_type = os.getenv("DEVICE_TYPE")
-    assert device_type, f"Please set DEVICE_TYPE environment variable."
     models = get_models_for_image(image_type, device_type)
     for model_id, model_revision, instance_type in models:
         args = argparse.Namespace(
