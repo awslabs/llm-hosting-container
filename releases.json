@@ -22,11 +22,20 @@
                 {
                     "device": "gpu",
                     "min_version": "1.4.2",
-                    "max_version": "1.4.5",
+                    "max_version": "2.0.1",
                     "os_version": "ubuntu22.04",
                     "cuda_version": "cu121",
                     "python_version": "py310",
                     "pytorch_version": "2.1.1"
+                },
+                {
+                    "device": "gpu",
+                    "min_version": "2.0.2",
+                    "max_version": "2.0.3",
+                    "os_version": "ubuntu22.04",
+                    "cuda_version": "cu121",
+                    "python_version": "py310",
+                    "pytorch_version": "2.3.0"
                 },
                 {
                     "device": "inf2",
@@ -35,6 +44,14 @@
                     "os_version": "ubuntu22.04",
                     "python_version": "py310",
                     "pytorch_version": "1.13.1"
+                },
+                {
+                    "device": "inf2",
+                    "min_version": "0.0.22",
+                    "max_version": "0.0.22",
+                    "os_version": "ubuntu22.04",
+                    "python_version": "py310",
+                    "pytorch_version": "2.1.2"
                 }
         ],
         "TEI": [
