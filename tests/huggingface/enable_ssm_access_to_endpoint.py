@@ -1,6 +1,7 @@
 import uuid
 import boto3
-
+# This script helps you to enable SSM access to the endpoint so we can debug the
+# container level issues there
 def main():
     session = boto3.Session()
     client = session.client("sagemaker", region_name="us-west-2")
