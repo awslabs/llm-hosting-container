@@ -39,7 +39,7 @@ else
     exit 1
 fi
 
-output=$(nvidia-smi --query-gpu=compute_capability --format=csv,noheader,nounits 2>&1)
+output=$(nvidia-smi --query-gpu=compute_cap --format=csv | sed -n '2p' | sed 's/\.//g' 2>&1)
 if [ $? -ne 0 ]; then
     echo "Error: $output"
 else
@@ -48,7 +48,7 @@ fi
 
 if [[ -z "${CUDA_COMPUTE_CAP}" ]]
 then
-    compute_cap=$(nvidia-smi --query-gpu=compute_capability --format=csv | sed -n '2p' | sed 's/\.//g')
+    compute_cap=$(nvidia-smi --query-gpu=compute_cap --format=csv | sed -n '2p' | sed 's/\.//g')
 else
     compute_cap=$CUDA_COMPUTE_CAP
 fi
