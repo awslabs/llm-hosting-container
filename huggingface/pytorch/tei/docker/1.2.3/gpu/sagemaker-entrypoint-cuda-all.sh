@@ -42,8 +42,12 @@ fi
 output=$(nvidia-smi --query-gpu=compute_cap --format=csv | sed -n '2p' | sed 's/\.//g' 2>&1)
 if [ $? -ne 0 ]; then
     echo "Error: $output"
+    echo "query gpu failed"
 else
+    echo "nvidia-smi --query-gpu command found. Printing output:"
     echo "$output"
+    nvidia-smi --query-gpu=compute_cap || true
+    echo "query gpu finished"
 fi
 
 if [[ -z "${CUDA_COMPUTE_CAP}" ]]
