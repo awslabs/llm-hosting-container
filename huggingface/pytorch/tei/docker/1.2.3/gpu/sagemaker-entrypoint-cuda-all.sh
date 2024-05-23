@@ -41,6 +41,7 @@ fi
 
 if [[ -z "${CUDA_COMPUTE_CAP}" ]]
 then
+    nvidia-smi --query-gpu=compute_capability --format=csv,noheader,nounits 2>/dev/null || echo "Error: Unable to query compute capability."
     compute_cap=$(nvidia-smi --query-gpu=compute_cap --format=csv | sed -n '2p' | sed 's/\.//g')
 else
     compute_cap=$CUDA_COMPUTE_CAP
