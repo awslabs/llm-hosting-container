@@ -131,7 +131,7 @@ COPY --from=builder /usr/src/target/release/text-embeddings-router-90 /usr/local
 # Amazon SageMaker compatible image
 FROM base AS sagemaker
 
-ENV CUDA_COMPUTE_CAP=80
+# ENV CUDA_COMPUTE_CAP=80 
 
 COPY --chmod=775 /huggingface/pytorch/tei/docker/1.2.3/gpu/sagemaker-entrypoint-cuda-all.sh entrypoint.sh
 

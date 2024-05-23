@@ -7,7 +7,8 @@ verlte() {
 if [ -f /usr/local/cuda/compat/libcuda.so.1 ]; then
     CUDA_COMPAT_MAX_DRIVER_VERSION=$(readlink /usr/local/cuda/compat/libcuda.so.1 | cut -d"." -f 3-)
     echo "CUDA compat package requires Nvidia driver ≤${CUDA_COMPAT_MAX_DRIVER_VERSION}"
-    NVIDIA_DRIVER_VERSION=$(sed -n 's/^NVRM.*Kernel Module for x86_64 *\([0-9.]*\).*$/\1/p' /proc/driver/nvidia/version 2>/dev/null || true)
+    cat /proc/driver/nvidia/version
+    NVIDIA_DRIVER_VERSION=$(sed -n 's/^NVRM.*Kernel Module *\([0-9.]*\).*$/\1/p' /proc/driver/nvidia/version 2>/dev/null || true)
     echo "Current installed Nvidia driver version is ${NVIDIA_DRIVER_VERSION}"
     if [ $(verlte "$CUDA_COMPAT_MAX_DRIVER_VERSION" "$NVIDIA_DRIVER_VERSION") ]; then
         echo "Setup CUDA compatibility libs path to LD_LIBRARY_PATH"
