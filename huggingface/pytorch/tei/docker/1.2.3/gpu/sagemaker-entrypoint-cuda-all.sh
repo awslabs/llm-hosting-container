@@ -31,7 +31,10 @@ if [[ -n "${HF_MODEL_REVISION}" ]]; then
   export REVISION="${HF_MODEL_REVISION}"
 fi
 
-if ! command -v nvidia-smi &> /dev/null; then
+if command -v nvidia-smi &> /dev/null; then
+    echo "nvidia-smi command found. Printing output:"
+    nvidia-smi || true
+else
     echo "Error: 'nvidia-smi' command not found."
     exit 1
 fi
