@@ -133,7 +133,7 @@ FROM base AS sagemaker
 
 ENV CUDA_COMPUTE_CAP=80
 
-COPY --chmod=775 sagemaker-entrypoint-cuda-all.sh entrypoint.sh
+COPY --chmod=775 /huggingface/pytorch/tei/docker/1.2.3/sagemaker-entrypoint-cuda-all.sh entrypoint.sh
 
 ENTRYPOINT ["./entrypoint.sh"]
 

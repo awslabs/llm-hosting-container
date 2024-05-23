@@ -68,10 +68,11 @@ def run_test(args):
         logging.info("Output: " + json.dumps(output))
         # assert "generated_text" in output[0]
     finally:
-        if predictor:
-            predictor.delete_model()
-            predictor.delete_endpoint()
-        signal.alarm(0)
+        print("finished")
+    #     if predictor:
+    #         predictor.delete_model()
+    #         predictor.delete_endpoint()
+    #     signal.alarm(0)
 
 def get_models_for_image(image_type, device_type):
     if image_type == "TGI":
