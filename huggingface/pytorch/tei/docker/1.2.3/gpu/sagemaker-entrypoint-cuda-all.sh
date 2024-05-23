@@ -46,7 +46,7 @@ if [ $? -ne 0 ]; then
 else
     echo "nvidia-smi --query-gpu command found. Printing output:"
     echo "$output"
-    nvidia-smi --query-gpu=compute_cap || true
+    nvidia-smi --query-gpu=compute_cap --format=csv || true
     echo "query gpu finished"
 fi
 
