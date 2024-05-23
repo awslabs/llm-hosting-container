@@ -25,34 +25,50 @@ if [[ -z "${HF_MODEL_ID}" ]]; then
   echo "HF_MODEL_ID must be set"
   exit 1
 fi
+
 export MODEL_ID="${HF_MODEL_ID}"
 
 if [[ -n "${HF_MODEL_REVISION}" ]]; then
   export REVISION="${HF_MODEL_REVISION}"
 fi
 
-if command -v nvidia-smi &> /dev/null; then
-    echo "nvidia-smi command found. Printing output:"
-    nvidia-smi || true
-else
+if ! command -v nvidia-smi &> /dev/null; then
     echo "Error: 'nvidia-smi' command not found."
     exit 1
 fi
 
-output=$(nvidia-smi --query-gpu=compute_cap --format=csv | sed -n '2p' | sed 's/\.//g' 2>&1)
+# Query GPU name using nvidia-smi
+gpu_name=$(nvidia-smi --query-gpu=gpu_name --format=csv | awk 'NR==2')
 if [ $? -ne 0 ]; then
-    echo "Error: $output"
-    echo "query gpu failed"
+    echo "Error: $gpu_name"
+    echo "Query gpu_name failed"
 else
-    echo "nvidia-smi --query-gpu command found. Printing output:"
-    echo "$output"
-    nvidia-smi --query-gpu=compute_cap --format=csv || true
-    echo "query gpu finished"
+    echo "Query gpu_name succeeded. Printing output: $gpu_name"
 fi
+
+# Function to get compute capability based on GPU name
+get_compute_cap() {
+    gpu_name="$1"
+
+    # Check if the GPU name contains "A10G"
+    if [[ "$gpu_name" == *"A10G"* ]]; then
+        echo "86"
+    # Check if the GPU name contains "A100"
+    elif [[ "$gpu_name" == *"A100"* ]]; then
+        echo "80"
+    # Check if the GPU name contains "H100"
+    elif [[ "$gpu_name" == *"H100"* ]]; then
+        echo "90"
+    else
+        echo "80"  # Default compute capability
+        echo "Unrecognized GPU: $gpu_name"  # Print unrecognized GPU names
+    fi
+}
 
 if [[ -z "${CUDA_COMPUTE_CAP}" ]]
 then
-    compute_cap=$(nvidia-smi --query-gpu=compute_cap --format=csv | sed -n '2p' | sed 's/\.//g')
+    compute_cap=$(get_compute_cap "$gpu_name")
+    echo "the compute_cap is $compute_cap"
 else
     compute_cap=$CUDA_COMPUTE_CAP
 fi
