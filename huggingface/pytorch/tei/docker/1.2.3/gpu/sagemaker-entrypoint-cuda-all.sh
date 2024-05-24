@@ -61,7 +61,6 @@ get_compute_cap() {
         echo "90"
     else
         echo "80"  # Default compute capability
-        echo "Unrecognized GPU: $gpu_name"  # Print unrecognized GPU names
     fi
 }
 
