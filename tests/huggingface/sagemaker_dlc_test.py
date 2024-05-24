@@ -66,6 +66,7 @@ def run_test(args):
         }
         output = predictor.predict(data)
         logging.info("Output: " + json.dumps(output))
+        # TODO: we need to clearly define the expected output format for each models.
         # assert "generated_text" in output[0]
     finally:
         if predictor:
