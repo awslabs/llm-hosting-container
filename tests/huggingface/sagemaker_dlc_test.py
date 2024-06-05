@@ -25,9 +25,7 @@ def run_test(args):
     if args.model_revision:
         default_env["HF_MODEL_REVISION"] = args.model_revision
     if args.instance_type.startswith("ml.inf2"):
-        default_env["HF_BATCH_SIZE"] = "1"
         default_env["HF_NUM_CORES"] = "2"
-        default_env["HF_SEQUENCE_LENGTH"] = "4096"
         default_env["HF_AUTO_CAST_TYPE"] = "fp16"
         default_env["MAX_BATCH_SIZE"] = "1"
         default_env["MAX_INPUT_LENGTH"] = "2048"
@@ -81,10 +79,9 @@ def get_models_for_image(image_type, device_type):
                 ("bigscience/bloom-560m", None, "ml.g5.12xlarge"),
                 ("EleutherAI/gpt-neox-20b", None, "ml.g5.12xlarge"),
                 ("google/flan-t5-xxl", None, "ml.g5.12xlarge"),
-                ("HuggingFaceTB/cosmo-1b", None, "ml.inf2.8xlarge")
             ]
         elif device_type == "inf2":
-            return [ ("HuggingFaceTB/cosmo-1b", None, "ml.inf2.8xlarge") ]
+            return [ ("princeton-nlp/Sheared-LLaMA-1.3B", None, "ml.inf2.xlarge") ]
         else:
             raise ValueError(f"No testing models found for {image_type} on instance {device_type}. "
                              f"please check whether the image_type and instance_type are supported.")
@@ -118,7 +115,7 @@ def test(image_type, device_type, timeout: str = "3000"):
     test_device_type = os.getenv("DEVICE_TYPE")
     if test_target_image_type and not should_run_test_for_image(image_type, test_target_image_type):
         pytest.skip(f"Skipping test for image type {image_type} as it does not match target image type {test_target_image_type}")
-        
+
     if test_device_type and not should_run_test_for_image(device_type, test_device_type):
         pytest.skip(f"Skipping test for device type {device_type} as it does not match current device type {test_device_type}")
 
