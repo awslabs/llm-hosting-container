@@ -78,12 +78,13 @@
     "ignore_vulnerabilities": [],
     "releases": [
         {
-            "framework": "TGI",
-            "device": "inf2",
-            "version": "0.0.23",
+            "framework": "TEI",
+            "device": "gpu",
+            "version": "1.2.3",
             "os_version": "ubuntu22.04",
+            "cuda_version": "cu122",
             "python_version": "py310",
-            "pytorch_version": "2.1.2"
+            "pytorch_version": "2.0.1"
         }
     ]
 }
