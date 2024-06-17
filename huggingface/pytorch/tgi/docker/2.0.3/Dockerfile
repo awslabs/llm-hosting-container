@@ -51,7 +51,7 @@ ARG TARGETPLATFORM
 
 ENV PATH /opt/conda/bin:$PATH
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
     ccache \
@@ -84,7 +84,7 @@ FROM pytorch-install as kernel-builder
 
 ARG MAX_JOBS=8
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ninja-build cmake \
     && rm -rf /var/lib/apt/lists/*
 
@@ -176,7 +176,7 @@ ENV HUGGINGFACE_HUB_CACHE=/tmp \
 
 WORKDIR /usr/src
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     libssl-dev \
     ca-certificates \
     make \
@@ -233,7 +233,7 @@ COPY --from=builder /usr/src/target/release/text-generation-router /usr/local/bi
 # Install launcher
 COPY --from=builder /usr/src/target/release/text-generation-launcher /usr/local/bin/text-generation-launcher
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     build-essential \
     g++ \
     && rm -rf /var/lib/apt/lists/*
