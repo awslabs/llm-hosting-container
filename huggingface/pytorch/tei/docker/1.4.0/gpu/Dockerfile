@@ -1,4 +1,3 @@
-# Use the official NVIDIA CUDA base image
 FROM nvidia/cuda:12.2.0-devel-ubuntu22.04 AS base-builder
 
 ENV SCCACHE=0.5.4
@@ -9,10 +8,9 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     curl \
     libssl-dev \
     pkg-config \
-    wget \
-    gnupg2
+    && rm -rf /var/lib/apt/lists/*
 
-# Download and configure sccache
+# Donwload and configure sccache
 RUN curl -fsSL https://github.com/mozilla/sccache/releases/download/v$SCCACHE/sccache-v$SCCACHE-x86_64-unknown-linux-musl.tar.gz | tar -xzv --strip-components=1 -C /usr/local/bin sccache-v$SCCACHE-x86_64-unknown-linux-musl/sccache && \
     chmod +x /usr/local/bin/sccache
 
@@ -42,8 +40,10 @@ ARG ACTIONS_CACHE_URL
 ARG ACTIONS_RUNTIME_TOKEN
 ARG SCCACHE_GHA_ENABLED
 
-# limit the number of kernels built at the same time
+# Limit parallelism
 ARG RAYON_NUM_THREADS=4
+ARG CARGO_BUILD_JOBS
+ARG CARGO_BUILD_INCREMENTAL
 
 WORKDIR /usr/src
 
@@ -51,30 +51,30 @@ COPY --from=planner /usr/src/recipe.json recipe.json
 
 RUN if [ $VERTEX = "true" ]; \
     then \
-      cargo chef cook --release --features google --recipe-path recipe.json && sccache -s; \
+    cargo chef cook --release --features google --recipe-path recipe.json && sccache -s; \
     else \
-      cargo chef cook --release --recipe-path recipe.json && sccache -s; \
+    cargo chef cook --release --recipe-path recipe.json && sccache -s; \
     fi;
 
 RUN if [ $VERTEX = "true" ]; \
     then \
-      CUDA_COMPUTE_CAP=75 cargo chef cook --release --features google --features candle-cuda-turing --recipe-path recipe.json && sccache -s; \
+    CUDA_COMPUTE_CAP=75 cargo chef cook --release --features google --features candle-cuda-turing --recipe-path recipe.json && sccache -s; \
     else \
-      CUDA_COMPUTE_CAP=75 cargo chef cook --release --features candle-cuda-turing --recipe-path recipe.json && sccache -s; \
+    CUDA_COMPUTE_CAP=75 cargo chef cook --release --features candle-cuda-turing --recipe-path recipe.json && sccache -s; \
     fi;
 
 RUN if [ $VERTEX = "true" ]; \
     then \
-      CUDA_COMPUTE_CAP=80 cargo chef cook --release --features google --features candle-cuda --recipe-path recipe.json && sccache -s; \
+    CUDA_COMPUTE_CAP=80 cargo chef cook --release --features google --features candle-cuda --recipe-path recipe.json && sccache -s; \
     else \
-      CUDA_COMPUTE_CAP=80 cargo chef cook --release --features candle-cuda --recipe-path recipe.json && sccache -s; \
+    CUDA_COMPUTE_CAP=80 cargo chef cook --release --features candle-cuda --recipe-path recipe.json && sccache -s; \
     fi;
 
 RUN if [ $VERTEX = "true" ]; \
     then \
-      CUDA_COMPUTE_CAP=90 cargo chef cook --release --features google --features candle-cuda --recipe-path recipe.json && sccache -s; \
+    CUDA_COMPUTE_CAP=90 cargo chef cook --release --features google --features candle-cuda --recipe-path recipe.json && sccache -s; \
     else \
-      CUDA_COMPUTE_CAP=90 cargo chef cook --release --features candle-cuda --recipe-path recipe.json && sccache -s; \
+    CUDA_COMPUTE_CAP=90 cargo chef cook --release --features candle-cuda --recipe-path recipe.json && sccache -s; \
     fi;
 
 COPY backends backends
@@ -85,27 +85,27 @@ COPY Cargo.lock ./
 
 RUN if [ $VERTEX = "true" ]; \
     then \
-        CUDA_COMPUTE_CAP=75 cargo build --release --bin text-embeddings-router -F candle-cuda-turing -F google  && sccache -s; \
+    CUDA_COMPUTE_CAP=75 cargo build --release --bin text-embeddings-router -F candle-cuda-turing -F google  && sccache -s; \
     else \
-        CUDA_COMPUTE_CAP=75 cargo build --release --bin text-embeddings-router -F candle-cuda-turing && sccache -s; \
+    CUDA_COMPUTE_CAP=75 cargo build --release --bin text-embeddings-router -F candle-cuda-turing && sccache -s; \
     fi;
 
 RUN mv /usr/src/target/release/text-embeddings-router /usr/src/target/release/text-embeddings-router-75
 
 RUN if [ $VERTEX = "true" ]; \
     then \
-        CUDA_COMPUTE_CAP=80 cargo build --release --bin text-embeddings-router -F candle-cuda -F google  && sccache -s; \
+    CUDA_COMPUTE_CAP=80 cargo build --release --bin text-embeddings-router -F candle-cuda -F google  && sccache -s; \
     else \
-        CUDA_COMPUTE_CAP=80 cargo build --release --bin text-embeddings-router -F candle-cuda && sccache -s; \
+    CUDA_COMPUTE_CAP=80 cargo build --release --bin text-embeddings-router -F candle-cuda && sccache -s; \
     fi;
 
 RUN mv /usr/src/target/release/text-embeddings-router /usr/src/target/release/text-embeddings-router-80
 
 RUN if [ $VERTEX = "true" ]; \
     then \
-        CUDA_COMPUTE_CAP=90 cargo build --release --bin text-embeddings-router -F candle-cuda -F google  && sccache -s; \
+    CUDA_COMPUTE_CAP=90 cargo build --release --bin text-embeddings-router -F candle-cuda -F google  && sccache -s; \
     else \
-        CUDA_COMPUTE_CAP=90 cargo build --release --bin text-embeddings-router -F candle-cuda && sccache -s; \
+    CUDA_COMPUTE_CAP=90 cargo build --release --bin text-embeddings-router -F candle-cuda && sccache -s; \
     fi;
 
 RUN mv /usr/src/target/release/text-embeddings-router /usr/src/target/release/text-embeddings-router-90
@@ -118,12 +118,6 @@ ENV HUGGINGFACE_HUB_CACHE=/data \
     PORT=80 \
     USE_FLASH_ATTENTION=$DEFAULT_USE_FLASH_ATTENTION
 
-# Install nvidia-smi and other necessary utilities
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    wget \
-    libtemplate-perl \
-    perl
-
 COPY --from=builder /usr/src/target/release/text-embeddings-router-75 /usr/local/bin/text-embeddings-router-75
 COPY --from=builder /usr/src/target/release/text-embeddings-router-80 /usr/local/bin/text-embeddings-router-80
 COPY --from=builder /usr/src/target/release/text-embeddings-router-90 /usr/local/bin/text-embeddings-router-90
@@ -131,7 +125,7 @@ COPY --from=builder /usr/src/target/release/text-embeddings-router-90 /usr/local
 # Amazon SageMaker compatible image
 FROM base AS sagemaker
 
-COPY --chmod=775 /huggingface/pytorch/tei/docker/1.2.3/gpu/sagemaker-entrypoint-cuda-all.sh entrypoint.sh
+COPY --chmod=775 /huggingface/pytorch/tei/docker/1.4.0/gpu/sagemaker-entrypoint-cuda-all.sh entrypoint.sh
 
 ENTRYPOINT ["./entrypoint.sh"]
 

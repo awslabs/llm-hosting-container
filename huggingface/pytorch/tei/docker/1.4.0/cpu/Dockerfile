@@ -4,7 +4,7 @@ WORKDIR /usr/src
 ENV SCCACHE=0.5.4
 ENV RUSTC_WRAPPER=/usr/local/bin/sccache
 
-# Donwload and configure sccache
+# Donwload, configure sccache
 RUN curl -fsSL https://github.com/mozilla/sccache/releases/download/v$SCCACHE/sccache-v$SCCACHE-x86_64-unknown-linux-musl.tar.gz | tar -xzv --strip-components=1 -C /usr/local/bin sccache-v$SCCACHE-x86_64-unknown-linux-musl/sccache && \
     chmod +x /usr/local/bin/sccache
 
@@ -29,9 +29,9 @@ ARG ACTIONS_RUNTIME_TOKEN
 ARG SCCACHE_GHA_ENABLED
 
 RUN wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
-| gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null && \
-  echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | \
-  tee /etc/apt/sources.list.d/oneAPI.list
+    | gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null && \
+    echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | \
+    tee /etc/apt/sources.list.d/oneAPI.list
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     intel-oneapi-mkl-devel=2024.0.0-49656 \
@@ -108,12 +108,6 @@ COPY --from=http-builder /usr/src/target/release/text-embeddings-router /usr/loc
 
 # Amazon SageMaker compatible image
 FROM http as sagemaker
-COPY --chmod=775 sagemaker-entrypoint.sh entrypoint.sh
+COPY --chmod=775 /huggingface/pytorch/tei/docker/1.4.0/cpu/sagemaker-entrypoint.sh entrypoint.sh
 
 ENTRYPOINT ["./entrypoint.sh"]
-
-# Default image
-FROM http
-
-ENTRYPOINT ["text-embeddings-router"]
-CMD ["--json-output"]
