@@ -108,6 +108,6 @@ COPY --from=http-builder /usr/src/target/release/text-embeddings-router /usr/loc
 
 # Amazon SageMaker compatible image
 FROM http as sagemaker
-COPY --chmod=775 /huggingface/pytorch/tei/docker/1.4.0/cpu/sagemaker-entrypoint.sh entrypoint.sh
+COPY --chmod=775 sagemaker-entrypoint.sh entrypoint.sh
 
 ENTRYPOINT ["./entrypoint.sh"]

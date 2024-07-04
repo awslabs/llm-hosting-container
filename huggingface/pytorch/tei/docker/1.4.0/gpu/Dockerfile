@@ -125,7 +125,7 @@ COPY --from=builder /usr/src/target/release/text-embeddings-router-90 /usr/local
 # Amazon SageMaker compatible image
 FROM base AS sagemaker
 
-COPY --chmod=775 /huggingface/pytorch/tei/docker/1.4.0/gpu/sagemaker-entrypoint-cuda-all.sh entrypoint.sh
+COPY --chmod=775 sagemaker-entrypoint-cuda-all.sh entrypoint.sh
 
 ENTRYPOINT ["./entrypoint.sh"]
 
