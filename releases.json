@@ -78,7 +78,7 @@
     "ignore_vulnerabilities": [],
     "releases": [
         {
-            "framework": "GI",
+            "framework": "TGI",
             "device": "gpu",
             "version": "2.2.0",
             "os_version": "ubuntu22.04",
