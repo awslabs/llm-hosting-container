@@ -18,9 +18,6 @@ COPY --from=tgi /tgi/proto proto
 COPY --from=tgi /tgi/benchmark benchmark
 COPY --from=tgi /tgi/router router
 COPY --from=tgi /tgi/launcher launcher
-RUN rustc --version
-RUN rustup update
-RUN rustc --version
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder
@@ -40,6 +37,9 @@ COPY --from=tgi /tgi/proto proto
 COPY --from=tgi /tgi/benchmark benchmark
 COPY --from=tgi /tgi/router router
 COPY --from=tgi /tgi/launcher launcher
+RUN rustc --version
+RUN rustup update
+RUN rustc --version
 RUN cargo build --release --workspace --exclude benchmark
 
 # Fetch optimum-neuron sources
