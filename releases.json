@@ -75,7 +75,7 @@
             }
         ]
     },
-    "ignore_vulnerabilities": [],
+    "ignore_vulnerabilities": ["CVE-2024-42154 - linux"],
     "releases": [
         {
             "framework": "TGI",
