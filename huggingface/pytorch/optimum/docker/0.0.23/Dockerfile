@@ -78,6 +78,7 @@ FROM base AS neuron
 # Install system prerequisites
 RUN apt-get update -y \
     && apt-get install -y --no-install-recommends \
+    libgssapi-krb5-2
     gnupg2 \
     wget \
     python3-dev \
