@@ -51,12 +51,15 @@ ARG TARGETPLATFORM
 ENV PATH /opt/conda/bin:$PATH
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    libgssapi-krb5-2 \
     build-essential \
     ca-certificates \
     ccache \
     curl \
     git && \
+    apt-get upgrade libgssapi-krb5-2 \
+    libk5crypto3 \
+    libkrb5support0 \
+    libkrb5-3 && \
     rm -rf /var/lib/apt/lists/*
 
 # Install conda
