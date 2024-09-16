@@ -55,11 +55,11 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     ca-certificates \
     ccache \
     curl \
-    git && \
-    apt-get upgrade libgssapi-krb5-2 \
+    libgssapi-krb5-2 \
     libk5crypto3 \
     libkrb5support0 \
-    libkrb5-3 && \
+    libkrb5-3 \
+    git && \
     rm -rf /var/lib/apt/lists/*
 
 # Install conda
