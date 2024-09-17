@@ -55,8 +55,8 @@ RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-g
     ca-certificates \
     ccache \
     curl \
-    libgssapi-krb5-2 \
-    libk5crypto3 \
+    libgssapi-krb5-2=1.19.2-2ubuntu0.4 \
+    libk5crypto3=1.19.2-2ubuntu0.4 \
     libkrb5support0 \
     libkrb5-3 \
     git && \
