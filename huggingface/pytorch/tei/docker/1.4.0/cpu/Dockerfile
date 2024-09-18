@@ -81,6 +81,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     ca-certificates \
     libssl-dev \
     curl \
+    libgssapi-krb5-2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy a lot of the Intel shared objects because of the mkl_serv_intel_cpu_true patch...
