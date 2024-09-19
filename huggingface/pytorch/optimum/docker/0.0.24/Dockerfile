@@ -83,6 +83,7 @@ RUN apt-get update -y \
     gnupg2 \
     wget \
     python3-dev \
+    libexpat1 \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
