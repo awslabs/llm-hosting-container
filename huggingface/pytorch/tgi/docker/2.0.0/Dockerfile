@@ -180,6 +180,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     make \
     unzip \
     curl \
+    libgssapi-krb5-2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy conda with PyTorch installed
