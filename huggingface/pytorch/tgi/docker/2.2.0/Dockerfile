@@ -50,12 +50,15 @@ ARG TARGETPLATFORM
 
 ENV PATH /opt/conda/bin:$PATH
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update \
+ && apt-get -y upgrade \ 
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     libgssapi-krb5-2 \
     build-essential \
     ca-certificates \
     ccache \
     curl \
+    libexpat1 \
     git && \
     rm -rf /var/lib/apt/lists/*
 
@@ -208,7 +211,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     unzip \
     curl \
     git \
-    libxexpat1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy conda with PyTorch installed
