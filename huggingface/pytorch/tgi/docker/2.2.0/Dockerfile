@@ -208,6 +208,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     unzip \
     curl \
     git \
+    libxexpat1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy conda with PyTorch installed
