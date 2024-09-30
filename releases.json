@@ -78,12 +78,13 @@
     "ignore_vulnerabilities": ["CVE-2024-42154 - linux"],
     "releases": [
         {
-            "framework": "TGI",
-            "device": "inf2",
+            "framework": "TEI",
+            "device": "gpu",
             "version": "0.0.24",
             "os_version": "ubuntu22.04",
             "python_version": "py310",
-            "pytorch_version": "2.1.2"
+            "pytorch_version": "2.0.1",
+            "cuda_version": "cu122"
         }
     ]
 }
