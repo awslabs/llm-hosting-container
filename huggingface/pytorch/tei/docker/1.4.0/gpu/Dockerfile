@@ -8,6 +8,7 @@ RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-g
     curl \
     libssl-dev \
     pkg-config \
+    libnghttp2-14 \
     perl \
     libgssapi-krb5-2 \
     && rm -rf /var/lib/apt/lists/*
