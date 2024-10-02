@@ -263,7 +263,7 @@ ENV LD_PRELOAD=/opt/conda/lib/python3.10/site-packages/nvidia/nccl/lib/libnccl.s
 # Deps before the binaries
 # The binaries change on every build given we burn the SHA into them
 # The deps change less often.
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     build-essential \
     libgssapi-krb5-2 \
     g++ \
