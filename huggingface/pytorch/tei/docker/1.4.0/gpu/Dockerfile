@@ -8,11 +8,8 @@ RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-g
     curl \
     libssl-dev \
     pkg-config \
-    libgssapi-krb5-2=1.19.2-2ubuntu0.4 \
-    libk5crypto3=1.19.2-2ubuntu0.4 \
-    libkrb5support0=1.19.2-2ubuntu0.4 \
-    libkrb5-3=1.19.2-2ubuntu0.4 \
     perl \
+    libgssapi-krb5 \
     && rm -rf /var/lib/apt/lists/*
 
 # Donwload and configure sccache
