@@ -4,11 +4,14 @@ ENV SCCACHE=0.5.4
 ENV RUSTC_WRAPPER=/usr/local/bin/sccache
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     curl \
     libssl-dev \
     pkg-config \
-    libgssapi-krb5-2 \
+    libgssapi-krb5-2=1.19.2-2ubuntu0.4 \
+    libk5crypto3=1.19.2-2ubuntu0.4 \
+    libkrb5support0=1.19.2-2ubuntu0.4 \
+    libkrb5-3=1.19.2-2ubuntu0.4 \
     perl \
     && rm -rf /var/lib/apt/lists/*
 
