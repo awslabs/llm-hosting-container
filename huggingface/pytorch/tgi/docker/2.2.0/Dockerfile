@@ -50,7 +50,7 @@ ARG TARGETPLATFORM
 
 ENV PATH /opt/conda/bin:$PATH
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     libgssapi-krb5-2 \
     build-essential \
     ca-certificates \
@@ -203,9 +203,10 @@ ENV HUGGINGFACE_HUB_CACHE=/tmp \
 WORKDIR /usr/src
 
 RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    build-essential \
+    libssl-dev \
     ca-certificates \
-    ccache \
+    make \
+    unzip \
     curl \
     libgssapi-krb5-2=1.19.2-2ubuntu0.4 \
     libk5crypto3=1.19.2-2ubuntu0.4 \
@@ -213,8 +214,8 @@ RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-g
     libkrb5-3 \
     libnghttp2-14 \
     libexpat1 \
-    git && \
-    rm -rf /var/lib/apt/lists/*
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy conda with PyTorch installed
 COPY --from=pytorch-install /opt/conda /opt/conda
