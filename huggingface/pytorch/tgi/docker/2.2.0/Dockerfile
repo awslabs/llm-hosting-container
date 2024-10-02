@@ -208,12 +208,8 @@ RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-g
     make \
     unzip \
     curl \
-    libk5crypto3=1.19.2-2ubuntu0.4 \
-    libkrb5support0 \
-    libkrb5-3 \
-    libnghttp2-14 \
-    libexpat1 \
     git \
+    libexpat1 \
     libgssapi-krb5-2 \
     && rm -rf /var/lib/apt/lists/*
 
