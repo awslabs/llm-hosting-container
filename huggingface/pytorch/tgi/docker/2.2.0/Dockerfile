@@ -208,13 +208,13 @@ RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-g
     make \
     unzip \
     curl \
-    libgssapi-krb5-2=1.19.2-2ubuntu0.4 \
     libk5crypto3=1.19.2-2ubuntu0.4 \
     libkrb5support0 \
     libkrb5-3 \
     libnghttp2-14 \
     libexpat1 \
     git \
+    libgssapi-krb5-2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy conda with PyTorch installed
@@ -269,6 +269,7 @@ ENV LD_PRELOAD=/opt/conda/lib/python3.10/site-packages/nvidia/nccl/lib/libnccl.s
 # The deps change less often.
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     build-essential \
+    libgssapi-krb5-2 \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
