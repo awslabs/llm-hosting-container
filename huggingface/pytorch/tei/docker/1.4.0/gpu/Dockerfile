@@ -4,11 +4,10 @@ ENV SCCACHE=0.5.4
 ENV RUSTC_WRAPPER=/usr/local/bin/sccache
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     curl \
     libssl-dev \
     pkg-config \
-    libgssapi-krb5-2 \
     perl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -119,6 +118,12 @@ ARG DEFAULT_USE_FLASH_ATTENTION=True
 ENV HUGGINGFACE_HUB_CACHE=/data \
     PORT=80 \
     USE_FLASH_ATTENTION=$DEFAULT_USE_FLASH_ATTENTION
+
+# Something between this and the above apt-get upgrade has a conflicting dependency that overrides the previous
+# upgrade. This needs further investigation, but patching this for now to fix the CVE
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    libgssapi-krb5-2 \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/src/target/release/text-embeddings-router-75 /usr/local/bin/text-embeddings-router-75
 COPY --from=builder /usr/src/target/release/text-embeddings-router-80 /usr/local/bin/text-embeddings-router-80
