@@ -40,7 +40,7 @@
             {
                 "device": "gpu",
                 "min_version": "2.3.1",
-                "max_version": "2.3.1",
+                "max_version": "2.4.0",
                 "os_version": "ubuntu22.04",
                 "cuda_version": "cu124",
                 "python_version": "py311",
@@ -84,7 +84,9 @@
             }
         ]
     },
-    "ignore_vulnerabilities": ["CVE-2024-42154 - linux"],
+    "ignore_vulnerabilities": [
+        "CVE-2024-42154 - linux"
+    ],
     "releases": [
         {
             "framework": "TGI",

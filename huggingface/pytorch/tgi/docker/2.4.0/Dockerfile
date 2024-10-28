@@ -1,5 +1,5 @@
 # Rust builder
-FROM lukemathwalker/cargo-chef:latest-rust-1.80 AS chef
+FROM lukemathwalker/cargo-chef:latest-rust-1.80.1 AS chef
 WORKDIR /usr/src
 
 ARG CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
@@ -29,6 +29,10 @@ RUN PROTOC_ZIP=protoc-21.12-linux-x86_64.zip && \
 COPY --from=planner /usr/src/recipe.json recipe.json
 RUN cargo chef cook --profile release-opt --recipe-path recipe.json
 
+ARG GIT_SHA
+ARG DOCKER_LABEL
+
+COPY Cargo.lock Cargo.lock
 COPY Cargo.toml Cargo.toml
 COPY rust-toolchain.toml rust-toolchain.toml
 COPY proto proto
@@ -36,7 +40,7 @@ COPY benchmark benchmark
 COPY router router
 COPY backends backends
 COPY launcher launcher
-RUN cargo build --profile release-opt
+RUN cargo build --profile release-opt --frozen
 
 # Python builder
 # Adapted from: https://github.com/pytorch/pytorch/blob/master/Dockerfile
@@ -56,13 +60,11 @@ ARG TARGETPLATFORM
 
 ENV PATH /opt/conda/bin:$PATH
 
-RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
     ccache \
     curl \
-    libexpat1 \
-    libgssapi-krb5-2 \
     git && \
     rm -rf /var/lib/apt/lists/*
 
@@ -159,15 +161,6 @@ COPY server/custom_kernels/ .
 # Build specific version of transformers
 RUN python setup.py build
 
-# Build FBGEMM CUDA kernels
-FROM kernel-builder AS fbgemm-builder
-
-WORKDIR /usr/src
-
-COPY server/Makefile-fbgemm Makefile
-
-RUN make build-fbgemm
-
 # Build vllm CUDA kernels
 FROM kernel-builder AS vllm-builder
 
@@ -240,8 +233,6 @@ COPY --from=awq-kernels-builder /usr/src/llm-awq/awq/kernels/build/lib.linux-x86
 COPY --from=eetq-kernels-builder /usr/src/eetq/build/lib.linux-x86_64-cpython-311 /opt/conda/lib/python3.11/site-packages
 # Copy build artifacts from lorax punica kernels builder
 COPY --from=lorax-punica-builder /usr/src/lorax-punica/server/punica_kernels/build/lib.linux-x86_64-cpython-311 /opt/conda/lib/python3.11/site-packages
-# Copy build artifacts from fbgemm builder
-COPY --from=fbgemm-builder /usr/src/fbgemm/fbgemm_gpu/_skbuild/linux-x86_64-3.11/cmake-install /opt/conda/lib/python3.11/site-packages
 # Copy build artifacts from vllm builder
 COPY --from=vllm-builder /usr/src/vllm/build/lib.linux-x86_64-cpython-311 /opt/conda/lib/python3.11/site-packages
 # Copy build artifacts from mamba builder
@@ -299,7 +290,7 @@ RUN HOME_DIR=/root && \
     chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
     ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python && \
     rm -rf ${HOME_DIR}/oss_compliance*
-COPY /huggingface/pytorch/tgi/docker/2.3.1/THIRD-PARTY-LICENSES /root/THIRD-PARTY-LICENSES
+COPY /huggingface/pytorch/tgi/docker/2.4.0/THIRD-PARTY-LICENSES /root/THIRD-PARTY-LICENSES
 
 RUN /opt/conda/bin/conda clean -py
 
