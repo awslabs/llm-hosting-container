@@ -89,7 +89,7 @@
         {
             "framework": "TGI",
             "device": "gpu",
-            "version": "2.3.1",
+            "version": "2.4.0",
             "os_version": "ubuntu22.04",
             "python_version": "py311",
             "pytorch_version": "2.4.0",
