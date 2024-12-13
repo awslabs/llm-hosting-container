@@ -57,7 +57,7 @@
             {
                 "device": "inf2",
                 "min_version": "0.0.22",
-                "max_version": "0.0.25",
+                "max_version": "0.0.27",
                 "os_version": "ubuntu22.04",
                 "python_version": "py310",
                 "pytorch_version": "2.1.2"
@@ -90,12 +90,11 @@
     "releases": [
         {
             "framework": "TGI",
-            "device": "gpu",
-            "version": "2.4.0",
+            "device": "inf2",
+            "version": "0.0.27",
             "os_version": "ubuntu22.04",
-            "python_version": "py311",
-            "pytorch_version": "2.4.0",
-            "cuda_version": "cu124"
+            "python_version": "py310",
+            "pytorch_version": "2.1.2"
         }
     ]
 }
