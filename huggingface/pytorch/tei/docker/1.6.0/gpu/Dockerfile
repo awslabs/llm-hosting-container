@@ -8,7 +8,6 @@ RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-g
     curl \
     libssl-dev \
     pkg-config \
-    perl \
     && rm -rf /var/lib/apt/lists/*
 
 # Donwload and configure sccache
@@ -111,18 +110,18 @@ RUN if [ $VERTEX = "true" ]; \
 
 RUN mv /usr/src/target/release/text-embeddings-router /usr/src/target/release/text-embeddings-router-90
 
-FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04 as base
+FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04 AS base
 
 ARG DEFAULT_USE_FLASH_ATTENTION=True
 
-ENV HUGGINGFACE_HUB_CACHE=/data \
+ENV HUGGINGFACE_HUB_CACHE=/tmp \
     PORT=80 \
     USE_FLASH_ATTENTION=$DEFAULT_USE_FLASH_ATTENTION
 
-# Something between this and the above apt-get upgrade has a conflicting dependency that overrides the previous
-# upgrade. This needs further investigation, but patching this for now to fix the CVE
-RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    libgssapi-krb5-2 \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    ca-certificates \
+    libssl-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/src/target/release/text-embeddings-router-75 /usr/local/bin/text-embeddings-router-75
