@@ -43,7 +43,7 @@ RUN echo "int mkl_serv_intel_cpu_true() {return 1;}" > fakeintel.c && \
 
 COPY --from=planner /usr/src/recipe.json recipe.json
 
-RUN cargo chef cook --release --features candle --features mkl-dynamic --no-default-features --recipe-path recipe.json && sccache -s
+RUN cargo chef cook --release --features ort --features candle --features mkl-dynamic --no-default-features --recipe-path recipe.json && sccache -s
 
 COPY backends backends
 COPY core core
@@ -51,11 +51,11 @@ COPY router router
 COPY Cargo.toml ./
 COPY Cargo.lock ./
 
-FROM builder as http-builder
+FROM builder AS http-builder
 
-RUN cargo build --release --bin text-embeddings-router -F candle -F mkl-dynamic -F http --no-default-features && sccache -s
+RUN cargo build --release --bin text-embeddings-router -F ort -F candle -F mkl-dynamic -F http --no-default-features && sccache -s
 
-FROM builder as grpc-builder
+FROM builder AS grpc-builder
 
 RUN PROTOC_ZIP=protoc-21.12-linux-x86_64.zip && \
     curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v21.12/$PROTOC_ZIP && \
@@ -65,11 +65,11 @@ RUN PROTOC_ZIP=protoc-21.12-linux-x86_64.zip && \
 
 COPY proto proto
 
-RUN cargo build --release --bin text-embeddings-router -F grpc -F candle -F mkl-dynamic --no-default-features && sccache -s
+RUN cargo build --release --bin text-embeddings-router -F grpc -F ort -F candle -F mkl-dynamic --no-default-features && sccache -s
 
-FROM debian:bookworm-slim as base
+FROM debian:bookworm-slim AS base
 
-ENV HUGGINGFACE_HUB_CACHE=/data \
+ENV HUGGINGFACE_HUB_CACHE=/tmp \
     PORT=80 \
     MKL_ENABLE_INSTRUCTIONS=AVX512_E4 \
     RAYON_NUM_THREADS=8 \
@@ -95,7 +95,7 @@ COPY --from=builder /opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_avx2.so.2 /u
 COPY --from=builder /opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_avx512.so.2 /usr/local/lib/libmkl_avx512.so.2
 COPY --from=builder /usr/src/libfakeintel.so /usr/local/libfakeintel.so
 
-FROM base as grpc
+FROM base AS grpc
 
 COPY --from=grpc-builder /usr/src/target/release/text-embeddings-router /usr/local/bin/text-embeddings-router
 
