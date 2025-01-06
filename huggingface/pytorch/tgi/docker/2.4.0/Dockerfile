@@ -208,6 +208,7 @@ RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-g
     git \
     libexpat1 \
     libgssapi-krb5-2 \
+    linux-libc-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy conda with PyTorch installed
@@ -266,7 +267,6 @@ ENV EXLLAMA_NO_FLASH_ATTN=1
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     build-essential \
     g++ \
-    linux-libc-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install benchmarker
