@@ -29,7 +29,7 @@ WORKDIR /usr/src
 ARG CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
 
 FROM chef AS planner
-COPY /optimum-neuron/text-generation-inference/Cargo.toml Cargo.toml
+COPY --from=optimum-neuron /optimum-neuron/text-generation-inference/Cargo.toml Cargo.toml
 COPY --from=tgi /tgi/Cargo.lock Cargo.lock
 COPY --from=tgi /tgi/rust-toolchain.toml rust-toolchain.toml
 COPY --from=tgi /tgi/proto proto
@@ -52,11 +52,10 @@ RUN PROTOC_ZIP=protoc-21.12-linux-x86_64.zip && \
     unzip -o $PROTOC_ZIP -d /usr/local 'include/*' && \
     rm -f $PROTOC_ZIP
 
-COPY /optimum-neuron/text-generation-inference/Cargo.toml Cargo.toml
+COPY --from=optimum-neuron /optimum-neuron/text-generation-inference/Cargo.toml Cargo.toml
 COPY --from=planner /usr/src/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 
-COPY /optimum-neuron/text-generation-inference/Cargo.toml Cargo.toml
 COPY --from=tgi /tgi/Cargo.lock Cargo.lock
 COPY --from=tgi /tgi/rust-toolchain.toml rust-toolchain.toml
 COPY --from=tgi /tgi/proto proto
