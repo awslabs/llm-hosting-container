@@ -93,18 +93,55 @@
             }
         ]
     },
-    "ignore_vulnerabilities": [
-        "CVE-2024-42154 - linux"
-    ],
+    "ignore_vulnerabilities": ["CVE-2024-42154 - linux"],
     "releases": [
         {
+            "id": "TGI-3.1.0-default",
             "framework": "TGI",
-            "device": "gpu",
-            "version": "3.1.0",
-            "os_version": "ubuntu22.04",
-            "cuda_version": "cu124",
-            "python_version": "py311",
-            "pytorch_version": "2.5.1"
-        }
+            "backend": "default",
+            "reference": {"type": "version", "value": "3.1.0"},
+            "dockerfile": "docker/tgi/backends/default/versions/3.1.0/Dockerfile",
+            "config": {
+                "os_version": "ubuntu22.04",
+                "cuda_version": "cu124",
+                "python_version": "py311",
+                "pytorch_version": "2.5.1"
+            }
+        }, 
+        {
+            "id": "TGI-commit-8a3c9fb-default",
+            "framework": "TGI",
+            "backend": "default",
+            "reference": {
+              "type": "commit",
+              "value": "8a3c9fb79ad2ba875e627ea1809e3719bf12857b",
+              "role": ""
+            },
+            "dockerfile": "docker/tgi/backends/default/8a3c9fb/Dockerfile",
+            "config": {
+              "os_version": "ubuntu22.04",
+              "cuda_version": "cu124",
+              "python_version": "py311",
+              "pytorch_version": "2.5.1"
+            }
+          },
+
+          {
+            "id": "TGI-commit-b77d05d-llama.cpp",
+            "framework": "TGI",
+            "backend": "llamacpp",
+            "reference": {
+              "type": "commit",
+              "value": "b77d05d3af82fa3e7d9323b91aaf9438976aa595"
+            },
+            "dockerfile": "docker/tgi/backends/llamacpp/commits/b77d05d/Dockerfile",
+            "config": {
+              "os_version": "ubuntu22.04",
+              "cuda_version": "cu124",
+              "python_version": "py311",
+              "pytorch_version": "2.5.1"
+            }
+          }
+        
     ]
 }
