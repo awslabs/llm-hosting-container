@@ -98,12 +98,21 @@
     ],
     "releases": [
         {
-            "framework": "TGI",
-            "device": "inf2",
-            "version": "0.0.28",
+            "framework": "TEI",
+            "device": "gpu",
+            "version": "1.6.0",
             "os_version": "ubuntu22.04",
             "python_version": "py310",
-            "pytorch_version": "2.1.2"
+            "pytorch_version": "2.0.1",
+            "cuda_version": "cu122"
+        },
+        {
+            "framework": "TEI",
+            "device": "cpu",
+            "version": "1.6.0",
+            "os_version": "ubuntu22.04",
+            "python_version": "py310",
+            "pytorch_version": "2.0.1"
         }
     ]
 }
