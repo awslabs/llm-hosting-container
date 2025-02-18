@@ -55,11 +55,13 @@ RUN cargo build \
     --profile release-opt \
     --package text-generation-router-llamacpp --frozen
 
-FROM nvidia/cuda:12.8.0-cudnn-runtime-ubuntu24.04
+FROM nvidia/cuda:12.8.0-cudnn-runtime-ubuntu24.04 as base
 
-RUN apt update && apt install -y \
+RUN apt update && apt upgrade -y && apt install -y \
     python3-venv \
-    python3-pip
+    python3-pip \
+    curl \
+    unzip
 
 RUN python3 -m venv /venv
 ENV PATH="/venv/bin:$PATH"
@@ -78,44 +80,10 @@ ENV HF_HUB_ENABLE_HF_TRANSFER=1
 FROM base AS sagemaker
 
 # Create the entrypoint script directly inside the Dockerfile
-RUN echo '''#!/bin/bash
-if [[ -z "${HF_MODEL_ID}" ]]; then
-  echo "HF_MODEL_ID must be set"
-  exit 1
-fi
-
-export MODEL_ID="${HF_MODEL_ID}"
-
-if [[ -z "${HF_MODEL_GGUF}" ]]; then
-  echo "HF_MODEL_GGUF must be set"
-  exit 1
-fi
-
-mkdir models
-
-if [[ -n "$HF_MODEL_GGUF_DIR" ]]; then
-    huggingface-cli download "{$HF_MODEL_GGUF}" --include "${HF_MODEL_GGUF_DIR}"/*.gguf --local-dir ./models/"${HF_MODEL_GGUF}"
-    echo "Downloaded model gguf files to ./models/${HF_MODEL_GGUF}/${HF_MODEL_GGUF_DIR}"
-    export MODEL_GGUF="$(find ./models/"${HF_MODEL_GGUF}"/"${HF_MODEL_GGUF_DIR}" -maxdepth 1 -type f -name "*.gguf" | sort | head -n 1)"
-
-else
-    huggingface-cli download "${HF_MODEL_GGUF}" --local-dir "./models/${HF_MODEL_GGUF}"
-    echo "Downloaded model gguf files to ./models/${HF_MODEL_GGUF}"
-    export MODEL_GGUF="$(find ./models/"${HF_MODEL_GGUF}" -maxdepth 1 -type f -name "*.gguf" | sort | head -n 1)"
-fi
-
-if [[ -z "${MODEL_GGUF}" ]]; then
-    echo "No gguf files found in ./models/${HF_MODEL_GGUF}"
-    exit 1
-fi
-
-text-generation-router-llamacpp --port 8080''' > ./entrypoint.sh
-
-
-RUN chmod 775 ./entrypoint.sh
+COPY --chmod=775 /huggingface/pytorch/tgi/docker/backends/llamacpp/commits/cfd4fbb/entrypoint.sh entrypoint.sh
 
 RUN HOME_DIR=/root && \
-    pip install requests && \
+    pip install requests setuptools && \
     curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
     unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ && \
     cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
@@ -123,9 +91,10 @@ RUN HOME_DIR=/root && \
     chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
     ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python && \
     rm -rf ${HOME_DIR}/oss_compliance*
+    
 COPY /huggingface/pytorch/tgi/docker/backends/llamacpp/commits/cfd4fbb/THIRD-PARTY-LICENSES /root/THIRD-PARTY-LICENSES
 
-RUN /opt/conda/bin/conda clean -py
+#RUN /opt/conda/bin/conda clean -py
 
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["--json-output"]
