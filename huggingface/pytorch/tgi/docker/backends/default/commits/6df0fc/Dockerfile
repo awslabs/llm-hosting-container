@@ -164,10 +164,11 @@ ENV HF_HOME=/data \
 
 WORKDIR /usr/src
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         libssl-dev \
         ca-certificates \
         make \
+        unzip \
         curl \
         git \
         && rm -rf /var/lib/apt/lists/*
@@ -251,20 +252,21 @@ COPY --from=builder /usr/src/target/release-opt/text-generation-launcher /usr/lo
 # AWS Sagemaker compatible image
 FROM base AS sagemaker
 
-COPY --chmod=775 sagemaker-entrypoint.sh entrypoint.sh
+COPY --chmod=775 /huggingface/pytorch/tgi/docker/backends/default/commits/6df0fc/entrypoint.sh entrypoint.sh
 
 RUN HOME_DIR=/root && \
-    pip install requests && \
+    uv pip install pip requests PTable && \
     curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
     unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ && \
     cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
     chmod +x /usr/local/bin/testOSSCompliance && \
     chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
+    ln -sf /bin/uv /usr/local/bin/pip && \
     ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python && \
     rm -rf ${HOME_DIR}/oss_compliance*
-COPY /huggingface/pytorch/tgi/docker/backends/default/commits/6df0fc/THIRD-PARTY-LICENSES /root/THIRD-PARTY-LICENSES
 
-RUN /opt/conda/bin/conda clean -py
+COPY huggingface/pytorch/tgi/docker/backends/default/commits/6df0fc/THIRD-PARTY-LICENSES /root/THIRD-PARTY-LICENSES
+
 
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["--json-output"]
