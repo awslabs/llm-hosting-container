@@ -247,7 +247,7 @@ ENV EXLLAMA_NO_FLASH_ATTN=1
 # Deps before the binaries
 # The binaries change on every build given we burn the SHA into them
 # The deps change less often.
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     build-essential \
     g++ \
     && rm -rf /var/lib/apt/lists/*
@@ -263,7 +263,7 @@ COPY --from=builder /usr/src/target/release-opt/text-generation-launcher /usr/lo
 # AWS Sagemaker compatible image
 FROM base AS sagemaker
 
-COPY --chmod=775 sagemaker-entrypoint.sh entrypoint.sh
+COPY --chmod=775 /huggingface/pytorch/tgi/docker/3.0.1/entrypoint.sh entrypoint.sh
 
 RUN HOME_DIR=/root && \
     pip install requests && \

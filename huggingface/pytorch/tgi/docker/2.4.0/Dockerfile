@@ -280,7 +280,7 @@ COPY --from=builder /usr/src/target/release-opt/text-generation-launcher /usr/lo
 # AWS Sagemaker compatible image
 FROM base AS sagemaker
 
-COPY --chmod=775 sagemaker-entrypoint.sh entrypoint.sh
+COPY --chmod=775 /huggingface/pytorch/tgi/docker/2.4.0/entrypoint.sh entrypoint.sh
 
 RUN HOME_DIR=/root && \
     pip install requests && \
