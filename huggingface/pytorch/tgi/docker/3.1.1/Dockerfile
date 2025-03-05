@@ -163,6 +163,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
         make \
         curl \
         git \
+        unzip \
         && rm -rf /var/lib/apt/lists/*
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -190,6 +191,7 @@ RUN cd server && \
 RUN cd server && \
     uv sync --frozen --extra gen --extra attention --extra bnb --extra accelerate --extra compressed-tensors --extra marlin --extra moe --extra quantize --extra peft --extra outlines --active --python=${PYTHON_VERSION} && \
     uv pip install nvidia-nccl-cu12==2.25.1 && \
+    uv pip install chardet && \
     pwd && \
     text-generation-server --help
 
@@ -246,7 +248,7 @@ COPY /huggingface/pytorch/tgi/docker/3.1.1/start-cuda-compat.sh start-cuda-compa
 RUN chmod +x start-cuda-compat.sh
 
 RUN HOME_DIR=/root && \
-    pip install requests && \
+    uv pip install pip requests PTable && \
     curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
     unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ && \
     cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
@@ -257,8 +259,7 @@ RUN HOME_DIR=/root && \
 
 COPY /huggingface/pytorch/tgi/docker/3.1.1/THIRD-PARTY-LICENSES /root/THIRD-PARTY-LICENSES
 
-RUN /opt/conda/bin/conda clean -py
-
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/root/.local/share/uv/python/cpython-3.11.11-linux-x86_64-gnu/lib/"
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["--json-output"]
 
