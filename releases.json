@@ -48,12 +48,21 @@
             },
             {
                 "device": "gpu",
-                "min_version": "3.1.0",
+                "min_version": "3.0.1",
                 "max_version": "3.1.0",
                 "os_version": "ubuntu22.04",
                 "cuda_version": "cu124",
                 "python_version": "py311",
                 "pytorch_version": "2.5.1"
+            },
+            {
+                "device": "gpu",
+                "min_version": "3.1.1",
+                "max_version": "3.1.1",
+                "os_version": "ubuntu22.04",
+                "cuda_version": "cu124",
+                "python_version": "py311",
+                "pytorch_version": "2.6.0"
             },
             {
                 "device": "inf2",
@@ -100,11 +109,11 @@
         {
             "framework": "TGI",
             "device": "gpu",
-            "version": "3.1.0",
+            "version": "3.1.1",
             "os_version": "ubuntu22.04",
             "cuda_version": "cu124",
             "python_version": "py311",
-            "pytorch_version": "2.5.1"
+            "pytorch_version": "2.6.0"
         }
     ]
 }
