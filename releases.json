@@ -79,6 +79,14 @@
                 "os_version": "ubuntu22.04",
                 "python_version": "py310",
                 "pytorch_version": "2.1.2"
+            },
+            {
+                "device": "inf2",
+                "min_version": "3.2.0",
+                "max_version": "3.2.0",
+                "os_version": "ubuntu22.04",
+                "python_version": "py310",
+                "pytorch_version": "2.5.1"
             }
         ],
         "TEI": [
