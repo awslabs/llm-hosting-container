@@ -18,7 +18,7 @@ RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     python3.11-dev
 RUN PROTOC_ZIP=protoc-21.12-linux-x86_64.zip && \
     curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v21.12/$PROTOC_ZIP && \
@@ -55,7 +55,7 @@ ARG PYTHON_VERSION=3.11
 # Automatically set by buildx
 ARG TARGETPLATFORM
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         build-essential \
         ca-certificates \
         ccache \
@@ -75,7 +75,7 @@ FROM pytorch-install AS kernel-builder
 ARG MAX_JOBS=8
 ENV TORCH_CUDA_ARCH_LIST="8.0;8.6;9.0+PTX"
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         ninja-build cmake \
         && rm -rf /var/lib/apt/lists/*
 
@@ -157,7 +157,7 @@ ENV HF_HOME=/data \
 
 WORKDIR /usr/src
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         libssl-dev \
         ca-certificates \
         make \
@@ -228,7 +228,7 @@ ENV EXLLAMA_NO_FLASH_ATTN=1
 # Deps before the binaries
 # The binaries change on every build given we burn the SHA into them
 # The deps change less often.
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         build-essential \
         g++ \
         && rm -rf /var/lib/apt/lists/*
