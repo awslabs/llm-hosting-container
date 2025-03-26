@@ -19,8 +19,9 @@ from typing import Dict, List
 FRAMEWORK_DEVICE_DICT: Dict[str, List[str]] = {
     "TGI": ["GPU", "INF2"],
     "TEI": ["GPU", "CPU"],
+    "TGI_LLAMACPP": ["CPU"],
 }
-Framework = enum.Enum("Framework", ["TGI", "OPTIMUM", "TEI", "TGI-LLAMACPP"])
+Framework = enum.Enum("Framework", ["TGI", "OPTIMUM", "TEI", "TGI_LLAMACPP"])
 Device = enum.Enum("Device", ["GPU", "INF2", "CPU"])
 Mode = enum.Enum ("Mode", ["PR", "BUILD", "TEST", "RELEASE"])
 PipelineStatus = enum.Enum ("PipelineStatus", ["IN_PROGRESS", "SUCCESSFUL", "UNSUCCESSFUL"])

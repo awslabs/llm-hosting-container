@@ -1,1 +1,81 @@
 
+version: 0.2
+
+env:
+  shell: bash
+  variables:
+    FRAMEWORK_FOLDER: "huggingface/pytorch/tgi-llamacpp/docker"
+    PYTHONPATH: "/codebuild/output/src*/src/github.com/awslabs/llm-hosting-container"
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+    commands:
+      - echo "Installing Python version 3.11 ..."
+      - pyenv global $PYTHON_311_VERSION
+
+  pre_build:
+    commands:
+      - echo Pre-build started on `date`
+      - export PYTHONPATH=$(pwd):$PYTHONPATH
+      - |
+        echo "Setting up git history..."
+        if [ "$CODEBUILD_WEBHOOK_EVENT" = "PULL_REQUEST_MERGED" ] || [ "$CODEBUILD_WEBHOOK_EVENT" = "PULL_REQUEST_CREATED" ]; then
+          # For pull requests
+          git fetch origin $CODEBUILD_WEBHOOK_BASE_REF
+          CHANGED_FILES=$(git diff --name-only origin/$CODEBUILD_WEBHOOK_BASE_REF HEAD)
+        else
+          # For direct pushes, fetch the last commit
+          git fetch --unshallow || true
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD || git diff --name-only $(git rev-list --max-parents=0 HEAD) HEAD)
+        fi
+        
+        echo "Changed files:"
+        echo "$CHANGED_FILES"
+        
+        if echo "$CHANGED_FILES" | grep -q "^$FRAMEWORK_FOLDER/"; then
+          echo "Changes detected in $FRAMEWORK_FOLDER/, proceeding with build"
+          export BUILD_REQUIRED=true
+        else
+          echo "No changes detected in $FRAMEWORK_FOLDER/, skipping build"
+          export BUILD_REQUIRED=false
+          exit 0
+        fi
+      
+      # Continue with regular pre-build steps if BUILD_REQUIRED=true 
+      - |
+        if [ "$BUILD_REQUIRED" = true ]; then
+          echo Setting up Docker buildx.
+          docker buildx version
+          docker buildx create --name builder --driver docker-container --buildkitd-flags '--allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host' --use
+          docker buildx inspect --bootstrap --builder builder
+          docker buildx install
+          echo Preparing system dependencies for execution.
+          docker --version
+          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+          curl -LO http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+          bash Miniconda3-latest-Linux-x86_64.sh -bfp /miniconda3
+          export PATH=/miniconda3/bin:${PATH}
+          conda install python=3.11
+          conda update -y conda
+          echo Prepare TGI_LLAMACPP dependencies for execution.
+          mkdir tgi-llamacpp-artifacts
+          python -m pip install -r $FRAMEWORK_FOLDER/tgi-llamacpp-requirements.txt
+        fi
+
+  build:
+    commands:
+      - |
+        if [ "$BUILD_REQUIRED" = true ]; then
+          echo Build started on `date`
+          echo "Current PYTHONPATH: $PYTHONPATH"
+          python $FRAMEWORK_FOLDER/tgi-llamacpp.py
+        fi
+
+  post_build:
+    commands:
+      - |
+        if [ "$BUILD_REQUIRED" = true ]; then
+          echo Build completed on `date`
+        fi
