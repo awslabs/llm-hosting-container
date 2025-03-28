@@ -1,0 +1,10 @@
+boto3
+dataclasses
+docker
+gitpython
+sagemaker
+
+parameterized
+pytest
+pytest-mock
+pytest-xdist
