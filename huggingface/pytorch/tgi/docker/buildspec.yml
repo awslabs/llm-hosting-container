@@ -16,7 +16,7 @@ phases:
 
   pre_build:
     commands:
-      
+      - export PYTHONPATH=$(pwd):$PYTHONPATH
       - |
         echo Setting up Docker buildx.
         docker buildx version
