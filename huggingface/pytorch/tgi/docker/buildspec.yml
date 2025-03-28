@@ -3,6 +3,7 @@ version: 0.2
 env:
   shell: bash
   variables:
+    FRAMEWORK_FOLDER: "huggingface/pytorch/tgi/docker"
     PYTHONPATH: "/codebuild/output/src*/src/github.com/awslabs/llm-hosting-container"
 
 phases:
