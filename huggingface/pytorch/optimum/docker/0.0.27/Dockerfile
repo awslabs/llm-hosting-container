@@ -43,6 +43,7 @@ FROM chef AS builder
 RUN apt-get update -y \
  && apt-get install -y --no-install-recommends \
     unzip python3-dev libssl-dev pkg-config \
+    cmake \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
