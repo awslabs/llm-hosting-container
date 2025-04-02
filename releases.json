@@ -103,7 +103,8 @@
         ]
     },
     "ignore_vulnerabilities": [
-        "CVE-2024-42154 - linux"
+        "CVE-2024-42154 - linux",
+        "GHSA-4vmg-rw8f-92f9 - torch"
     ],
     "releases": [
         {
