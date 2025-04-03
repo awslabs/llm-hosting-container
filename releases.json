@@ -108,12 +108,11 @@
     "releases": [
         {
             "framework": "TGI",
-            "device": "gpu",
-            "version": "3.2.0",
+            "device": "inf2",
+            "version": "0.0.27",
             "os_version": "ubuntu22.04",
-            "cuda_version": "cu124",
-            "python_version": "py311",
-            "pytorch_version": "2.6.0"
+            "python_version": "py310",
+            "pytorch_version": "2.1.2"
         }
     ]
 }

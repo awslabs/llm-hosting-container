@@ -83,6 +83,7 @@ FROM base AS pyserver
 
 RUN apt-get update -y \
     && apt-get install -y --no-install-recommends \
+    golang-go \
     make \
     python3-venv \
     && rm -rf /var/lib/apt/lists/* \
