@@ -1,0 +1,48 @@
+version: 0.2
+
+env:
+  shell: bash
+  variables:
+    FRAMEWORK_FOLDER: "huggingface/pytorch/tgi/docker"
+    PYTHONPATH: "/codebuild/output/src*/src/github.com/awslabs/llm-hosting-container"
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+    commands:
+      - echo "Installing Python version 3.11 ..."
+      - pyenv global $PYTHON_311_VERSION
+
+  pre_build:
+    commands:
+      - export PYTHONPATH=$(pwd):$PYTHONPATH
+      - |
+        echo Setting up Docker buildx.
+        docker buildx version
+        docker buildx create --name builder --driver docker-container --buildkitd-flags '--allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host' --use
+        docker buildx inspect --bootstrap --builder builder
+        docker buildx install
+        echo Preparing system dependencies for execution.
+        docker --version
+        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+        curl -LO http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+        bash Miniconda3-latest-Linux-x86_64.sh -bfp /miniconda3
+        export PATH=/miniconda3/bin:${PATH}
+        conda install python=3.11
+        conda update -y conda
+        echo Prepare TGI dependencies for execution.
+        mkdir tgi-artifacts
+        python -m pip install -r $FRAMEWORK_FOLDER/tgi-requirements.txt
+
+  build:
+    commands:
+      - |
+        echo Build started on `date`
+        echo "Current PYTHONPATH: $PYTHONPATH"
+        python $FRAMEWORK_FOLDER/tgi.py
+
+  post_build:
+    commands:
+      - |
+        echo Build completed on `date`
