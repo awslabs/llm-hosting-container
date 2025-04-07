@@ -6,7 +6,7 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 # aligned with `cargo-chef` version in `lukemathwalker/cargo-chef:latest-rust-1.85-bookworm`
 ENV CARGO_CHEF=0.1.71
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     curl \
     libssl-dev \
     pkg-config \
@@ -96,7 +96,7 @@ ENV HUGGINGFACE_HUB_CACHE=/tmp \
     PORT=80 \
     USE_FLASH_ATTENTION=$DEFAULT_USE_FLASH_ATTENTION
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ca-certificates \
     libssl-dev \
     curl \
