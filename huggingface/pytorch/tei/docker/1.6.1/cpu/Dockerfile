@@ -113,6 +113,7 @@ COPY --from=http-builder /usr/src/target/release/text-embeddings-router /usr/loc
 
 # Amazon SageMaker compatible image
 FROM http AS sagemaker
+
 COPY --chmod=775 sagemaker-entrypoint.sh entrypoint.sh
 
 ENTRYPOINT ["./entrypoint.sh"]
