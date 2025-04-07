@@ -73,8 +73,9 @@ RUN --mount=type=secret,id=actions_cache_url,env=ACTIONS_CACHE_URL \
 
 FROM debian:bookworm-slim AS base
 
-ENV HUGGINGFACE_HUB_CACHE=/data \
+ENV HUGGINGFACE_HUB_CACHE=/tmp \
     PORT=80 \
+    HF_HUB_USER_AGENT_ORIGIN=aws:sagemaker:cpu:inference:tei \
     MKL_ENABLE_INSTRUCTIONS=AVX512_E4 \
     RAYON_NUM_THREADS=8 \
     LD_PRELOAD=/usr/local/libfakeintel.so \
