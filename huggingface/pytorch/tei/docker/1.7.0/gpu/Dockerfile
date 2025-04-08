@@ -23,6 +23,7 @@ FROM base-builder AS planner
 
 WORKDIR /usr/src
 
+COPY candle-extensions candle-extensions
 COPY backends backends
 COPY core core
 COPY router router
@@ -64,6 +65,7 @@ RUN --mount=type=secret,id=actions_cache_url,env=ACTIONS_CACHE_URL \
     --mount=type=secret,id=actions_runtime_token,env=ACTIONS_RUNTIME_TOKEN \
     CUDA_COMPUTE_CAP=90 cargo chef cook --release --features candle-cuda --recipe-path recipe.json && sccache -s;
 
+COPY candle-extensions candle-extensions
 COPY backends backends
 COPY core core
 COPY router router
@@ -92,7 +94,7 @@ FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04 AS base
 
 ARG DEFAULT_USE_FLASH_ATTENTION=True
 
-ENV HUGGINGFACE_HUB_CACHE=/tmp \
+ENV HUGGINGFACE_HUB_CACHE=/data \
     PORT=80 \
     USE_FLASH_ATTENTION=$DEFAULT_USE_FLASH_ATTENTION \
     HF_HUB_USER_AGENT_ORIGIN=aws:sagemaker:gpu-cuda:inference:tei
@@ -111,6 +113,6 @@ COPY --from=builder /usr/src/target/release/text-embeddings-router-90 /usr/local
 FROM base AS sagemaker
 
 COPY --chmod=775 sagemaker-entrypoint-cuda-all.sh entrypoint.sh
-COPY --chmod=775 /huggingface/pytorch/tgi/docker/3.2.0/start-cuda-compat.sh start-cuda-compat.sh
+COPY --chmod=775 /huggingface/pytorch/tei/docker/1.7.0/start-cuda-compat.sh start-cuda-compat.sh
 
 ENTRYPOINT ["./entrypoint.sh"]
