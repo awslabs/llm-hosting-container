@@ -45,6 +45,14 @@ def build(configs: ReleaseConfigs):
         LOG.info(
             f"Checked out {hf_tei_repo} with tag: {hf_tei_repo_tag} to {GIT_REPO_TEI_LOCAL_FOLDER_NAME}."
         )
+
+        subprocess.run(
+            ["git", "submodule", "update", "--init"],
+            cwd=GIT_REPO_TEI_LOCAL_FOLDER_NAME,
+            check=True,
+        )
+        LOG.info(f"Initialized and updated submodules for {hf_tei_repo_tag}.")
+
         shutil.copytree(
             GIT_REPO_DOCKERFILES_ROOT_DIRECTORY,
             os.path.join(
@@ -169,4 +177,3 @@ if __name__ == "__main__":
         raise ValueError(
             f"The mode '{mode}' is not recognized. Please set it correctly.'"
         )
-
