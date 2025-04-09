@@ -112,6 +112,7 @@
             "version": "3.2.3",
             "os_version": "ubuntu22.04",
             "python_version": "py311",
+            "cuda_version": "cu124",
             "pytorch_version": "2.6.0"
         }
     ]
