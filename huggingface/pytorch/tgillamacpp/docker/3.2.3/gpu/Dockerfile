@@ -86,6 +86,8 @@ COPY --from=builder /app/target/release/text-generation-router-llamacpp /usr/bin
 
 ENV HF_HUB_ENABLE_HF_TRANSFER=1
 
+FROM deps AS sagemaker
+
 RUN HOME_DIR=/root && \
     pip3 requests PTable && \
     curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
@@ -96,14 +98,14 @@ RUN HOME_DIR=/root && \
     ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python && \
     rm -rf ${HOME_DIR}/oss_compliance*
 
+    ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/root/.local/share/uv/python/cpython-3.11.11-linux-x86_64-gnu/lib/"
+    ENV HF_HUB_USER_AGENT_ORIGIN=aws:sagemaker:gpu-cuda:inference:tgi-llamacpp
+
 COPY /huggingface/pytorch/tgillamacpp/docker/3.2.3/THIRD-PARTY-LICENSES /root/THIRD-PARTY-LICENSES
-COPY /huggingface/pytorch/tgillamacpp/docker/3.2.3/start-cuda-compat.sh /root/start-cuda-compat.sh
+COPY /huggingface/pytorch/tgillamacpp/docker/3.2.3/gpu/start-cuda-compat.sh /root/start-cuda-compat.sh
 RUN chmod +x /root/start-cuda-compat.sh
 
-ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/root/.local/share/uv/python/cpython-3.11.11-linux-x86_64-gnu/lib/"
-ENV HF_HUB_USER_AGENT_ORIGIN=aws:sagemaker:gpu-cuda:inference:tgi-llamacpp
-
-COPY sagemaker-entrypoint.sh entrypoint.sh
+COPY /huggingface/pytorch/tgillamacpp/docker/3.2.3/gpu/entrypoint.sh entrypoint.sh
 RUN chmod +x entrypoint.sh 
 
 ENTRYPOINT ["./entrypoint.sh"]
