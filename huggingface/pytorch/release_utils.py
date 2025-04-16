@@ -19,7 +19,7 @@ from typing import Dict, List
 FRAMEWORK_DEVICE_DICT: Dict[str, List[str]] = {
     "TGI": ["GPU", "INF2"],
     "TEI": ["GPU", "CPU"],
-    "TGILLAMACPP": ["CPU"],
+    "TGILLAMACPP": ["GPU", "CPU"],
 }
 Framework = enum.Enum("Framework", ["TGI", "OPTIMUM", "TEI", "TGILLAMACPP"])
 Device = enum.Enum("Device", ["GPU", "INF2", "CPU"])
