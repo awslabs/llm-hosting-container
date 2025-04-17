@@ -32,7 +32,8 @@ def run_test(args):
         default_env["MAX_INPUT_TOKENS"] = "2048"
         default_env["MAX_TOTAL_TOKENS"] = "4096"
     if os.getenv("FRAMEWORK") == "TGILLAMACPP":
-        default_env["N_GPU_LAYERS"] = "99"
+        if os.getenv("DEVICE_TYPE") == "GPU":
+            default_env["N_GPU_LAYERS"] = "99"
         default_env["MAX_TOTAL_TOKENS"] = "2048"
         default_env["MAX_BATCH_SIZE"] = "1"
         default_env["TYPE_K"] = "q4-0"
