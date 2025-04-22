@@ -117,6 +117,7 @@
             "min_version": "3.2.3",
             "max_version": "3.2.3",
             "os_version": "ubuntu22.04",
+            "cuda_version": "cu124",
             "python_version": "py311",
             "pytorch_version": "2.6.0"
         }
@@ -141,6 +142,7 @@
             "framework": "TGILLAMACPP",
             "device": "cpu",
             "version": "3.2.3",
+            "cuda_version": "cu124",
             "os_version": "ubuntu22.04",
             "python_version": "py311",
             "pytorch_version": "2.6.0"
