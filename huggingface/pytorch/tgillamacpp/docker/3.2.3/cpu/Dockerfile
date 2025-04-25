@@ -109,6 +109,6 @@ RUN chmod +x entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["--json-output"]
 
-LABEL dlc_major_version="2"
+LABEL dlc_major_version="1"
 LABEL com.amazonaws.ml.engines.sagemaker.dlc.framework.huggingface.tgi="true"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port="true"
