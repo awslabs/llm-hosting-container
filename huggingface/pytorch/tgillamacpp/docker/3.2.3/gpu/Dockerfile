@@ -61,12 +61,14 @@ RUN cargo build \
     --profile release \
     --package text-generation-router-llamacpp --frozen
 
-FROM nvidia/cuda:12.8.0-cudnn-runtime-ubuntu24.04
+FROM nvidia/cuda:12.8.0-cudnn-runtime-ubuntu24.04 AS sagemaker
 WORKDIR /app
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && apt upgrade -y && apt install -y \
     python3-venv \
+    unzip \
+    curl \
     python3-pip
 
 RUN python3 -m venv /venv
@@ -85,11 +87,11 @@ COPY --from=builder /usr/lib/libggml*.so /usr/lib/
 COPY --from=builder /app/target/release/text-generation-router-llamacpp /usr/bin/
 
 ENV HF_HUB_ENABLE_HF_TRANSFER=1
+ENV HF_HUB_USER_AGENT_ORIGIN=aws:sagemaker:gpu-cuda:inference:tgi-llamacpp
 
-FROM deps AS sagemaker
 
 RUN HOME_DIR=/root && \
-    pip3 requests PTable && \
+    pip3 install requests PTable setuptools && \
     curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
     unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ && \
     cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
@@ -98,8 +100,6 @@ RUN HOME_DIR=/root && \
     ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python && \
     rm -rf ${HOME_DIR}/oss_compliance*
 
-    ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/root/.local/share/uv/python/cpython-3.11.11-linux-x86_64-gnu/lib/"
-    ENV HF_HUB_USER_AGENT_ORIGIN=aws:sagemaker:gpu-cuda:inference:tgi-llamacpp
 
 COPY /huggingface/pytorch/tgillamacpp/docker/3.2.3/THIRD-PARTY-LICENSES /root/THIRD-PARTY-LICENSES
 COPY /huggingface/pytorch/tgillamacpp/docker/3.2.3/gpu/start-cuda-compat.sh /root/start-cuda-compat.sh
@@ -111,6 +111,6 @@ RUN chmod +x entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["--json-output"]
 
-LABEL dlc_major_version="2"
+LABEL dlc_major_version="1"
 LABEL com.amazonaws.ml.engines.sagemaker.dlc.framework.huggingface.tgi="true"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port="true"
