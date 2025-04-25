@@ -119,6 +119,7 @@ ENV HUGGINGFACE_HUB_CACHE=/tmp \
     USE_FLASH_ATTENTION=$DEFAULT_USE_FLASH_ATTENTION
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    libgssapi-krb5-2 \
     ca-certificates \
     libssl-dev \
     curl \
