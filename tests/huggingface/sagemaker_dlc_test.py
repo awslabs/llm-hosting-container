@@ -26,7 +26,7 @@ def run_test(args):
         default_env["HF_MODEL_REVISION"] = args.model_revision
     if args.instance_type.startswith("ml.inf2"):
         default_env["HF_NUM_CORES"] = "2"
-        default_env["HF_AUTO_CAST_TYPE"] = "fp16"
+        default_env["HF_AUTO_CAST_TYPE"] = "bf16"
         default_env["MAX_BATCH_SIZE"] = "1"
         default_env["MAX_INPUT_TOKENS"] = "2048"
         default_env["MAX_TOTAL_TOKENS"] = "4096"
