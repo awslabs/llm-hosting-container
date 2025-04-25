@@ -89,7 +89,6 @@ COPY --from=builder /app/target/release/text-generation-router-llamacpp /usr/bin
 ENV HF_HUB_ENABLE_HF_TRANSFER=1
 ENV HF_HUB_USER_AGENT_ORIGIN=aws:sagemaker:gpu-cuda:inference:tgi-llamacpp
 
-
 RUN HOME_DIR=/root && \
     pip3 install requests PTable setuptools && \
     curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
