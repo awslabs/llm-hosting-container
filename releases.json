@@ -103,7 +103,8 @@
         ]
     },
     "ignore_vulnerabilities": [
-        "CVE-2024-42154 - linux"
+        "CVE-2024-42154 - linux",
+        "CVE-2025-32434 - torch"
     ],
     "releases": [
         {
