@@ -114,6 +114,6 @@ COPY --from=builder /usr/src/target/release/text-embeddings-router-90 /usr/local
 FROM base AS sagemaker
 
 COPY --chmod=775 sagemaker-entrypoint-cuda-all.sh entrypoint.sh
-COPY --chmod=775 /huggingface/pytorch/tei/docker/1.7.0/start-cuda-compat.sh start-cuda-compat.sh
+COPY --chmod=775 /huggingface/pytorch/tei/docker/1.7.0/gpu/start-cuda-compat.sh start-cuda-compat.sh
 
 ENTRYPOINT ["./entrypoint.sh"]
