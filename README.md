@@ -2,14 +2,15 @@
 
 Welcome to the LLM Hosting Container GitHub repository! 
 
-This repository contains Dockerfile and associated resources for building and
-hosting containers for large language models.
+This repository contains the Dockerfiles and associated resources for building and
+hosting containers for large language models and embedding models.
 
-* HuggingFace Text Generation Inference (TGI) container
+* Hugging Face Text Generation Inference (TGI) container
+* Hugging Face Text Embeddings Inference (TEI) container
 
 ## Security
 
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+See [CONTRIBUTING](CONTRIBUTING.md) for more information.
 
 ## License
 
