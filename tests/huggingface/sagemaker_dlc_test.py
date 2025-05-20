@@ -190,19 +190,19 @@ def get_models_for_image(image_type, device_type):
         if device_type == "gpu":
             return [
                 (
-                    "unsloth/Qwen3-0.6B",
+                    "Qwen/Qwen2-0.5B-Instruct",
                     None,
                     "ml.g5.12xlarge",
-                    "unsloth/Qwen3-0.6B-GGUF",
+                    "Qwen/Qwen2-0.5B-Instruct-GGUF",
                 )
             ]
         elif device_type == "cpu":
             return [
                 (
-                    "unsloth/Qwen3-0.6B",
+                    "Qwen/Qwen2-0.5B-Instruct",
                     None,
                     "ml.g5.12xlarge",
-                    "unsloth/Qwen3-0.6B-GGUF",
+                    "Qwen/Qwen2-0.5B-Instruct-GGUF",
                 )
             ]
         else:
