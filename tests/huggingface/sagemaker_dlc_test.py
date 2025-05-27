@@ -192,7 +192,7 @@ def get_models_for_image(image_type, device_type):
                 (
                     "Qwen/Qwen2-0.5B-Instruct",
                     None,
-                    "ml.g5.12xlarge",
+                    "ml.g5.24xlarge",
                     "Qwen/Qwen2-0.5B-Instruct-GGUF",
                 )
             ]
@@ -201,7 +201,7 @@ def get_models_for_image(image_type, device_type):
                 (
                     "Qwen/Qwen2-0.5B-Instruct",
                     None,
-                    "ml.g5.12xlarge",
+                    "ml.g5.24xlarge",
                     "Qwen/Qwen2-0.5B-Instruct-GGUF",
                 )
             ]
