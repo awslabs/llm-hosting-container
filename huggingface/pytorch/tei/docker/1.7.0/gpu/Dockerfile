@@ -95,7 +95,7 @@ FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04 AS base
 
 ARG DEFAULT_USE_FLASH_ATTENTION=True
 
-ENV HUGGINGFACE_HUB_CACHE=/data \
+ENV HUGGINGFACE_HUB_CACHE=/opt/ml/model \
     PORT=80 \
     USE_FLASH_ATTENTION=$DEFAULT_USE_FLASH_ATTENTION \
     HF_HUB_USER_AGENT_ORIGIN=aws:sagemaker:gpu-cuda:inference:tei
