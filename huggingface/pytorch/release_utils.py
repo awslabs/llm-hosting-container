@@ -210,15 +210,17 @@ class ReleaseConfigs:
                 + f"{self.framework.lower()}"
             )
             if self.device.lower() == Device.GPU.name.lower():
-                base_tag = (
-                    f"{self.pytorch_version}-{self.framework.lower()}{self.version}-gpu-{self.python_version}-"
-                    f"{self.cuda_version}-{self.os_version}"
-                )
+                if self.framework == "TEI":
+                    base_tag = f"{self.framework.lower()}{self.version}-gpu-{self.cuda_version}-{self.os_version}"
+                else:
+                    base_tag = f"{self.pytorch_version}-{self.framework.lower()}{self.version}-gpu-{self.python_version}-{self.cuda_version}-{self.os_version}"
             elif self.device.lower() == Device.CPU.name.lower():
-                base_tag = (
-                    f"{self.pytorch_version}-{self.framework.lower()}{self.version}-cpu-{self.python_version}-"
-                    f"{self.os_version}"
-                )
+                if self.framework == "TEI":
+                    base_tag = (
+                        f"{self.framework.lower()}{self.version}-cpu-{self.os_version}"
+                    )
+                else:
+                    base_tag = f"{self.pytorch_version}-{self.framework.lower()}{self.version}-cpu-{self.python_version}-{self.os_version}"
                 repo_uri += f"-{self.device.lower()}"
             assert base_tag is not None, (
                 f"No associated JumpStart tag pattern associated with device type '{self.device}'."
@@ -343,11 +345,17 @@ class ReleaseConfigs:
                     ), f"Invalid OS version specified: {config}.\nAllowed: {allowed}"
                     # Since Text Embeddings Inference (TEI) is Rust-only, both Python and PyTorch versions don't apply
                     if config.framework != "TEI":
+                        assert config.python_version is not None, (
+                            f"{config.framework=} requires the Python version to be specified."
+                        )
                         assert (
                             "py" in config.python_version  # type: ignore
                             and config.python_version == allowed.python_version
                         ), (
                             f"Invalid Python version specified: {config}.\nAllowed: {allowed}"
+                        )
+                        assert config.pytorch_version is not None, (
+                            f"{config.framework=} requires the PyTorch version to be specified."
                         )
                         assert (
                             re.search(r"\d+\.\d+\.\d+", config.pytorch_version)  # type: ignore
@@ -728,4 +736,3 @@ class DlcPipeline:
                 assert status == PipelineStatus.SUCCESSFUL.name, (
                     f"Pipeline: '{pipeline_name}' with execution ID: {execution_id} was not successful."
                 )
-
