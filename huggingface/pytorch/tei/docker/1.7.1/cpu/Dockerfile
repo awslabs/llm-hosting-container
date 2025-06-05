@@ -31,7 +31,7 @@ RUN wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRO
     echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | \
     tee /etc/apt/sources.list.d/oneAPI.list
 
-RUN apt-get update && apt-get upgrade && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     intel-oneapi-mkl-devel=2024.0.0-49656 \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
@@ -66,7 +66,7 @@ ENV HUGGINGFACE_HUB_CACHE=/opt/ml/model \
     LD_PRELOAD=/usr/local/libfakeintel.so \
     LD_LIBRARY_PATH=/usr/local/lib
 
-RUN apt-get update && apt-get upgrade && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     libomp-dev \
     ca-certificates \
     libssl-dev \
