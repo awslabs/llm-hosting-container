@@ -363,6 +363,13 @@ class ReleaseConfigs:
                         ), (
                             f"Invalid PyTorch version specified: {config}.\nAllowed: {allowed}"
                         )
+                    else:
+                        assert config.python_version is None, (
+                            f"{config.framework=} doesn't require the Python version to be specified as it's a Rust-only image."
+                        )
+                        assert config.pytorch_version is None, (
+                            f"{config.framework=} doesn't require the PyTorch version to be specified as it's a Rust-only image."
+                        )
                     is_valid = True
                     LOG.info(
                         f"The following release: {config} is permitted with: {allowed}."
