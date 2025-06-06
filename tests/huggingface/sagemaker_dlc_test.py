@@ -81,7 +81,7 @@ def run_test(args):
                 "instance_type": args.instance_type,
                 "initial_instance_count": 1,
                 "endpoint_name": endpoint_name,
-                "container_startup_health_check_timeout": 1800,
+                #"container_startup_health_check_timeout": 1800,
             }
             if args.instance_type.startswith("ml.inf2"):
                 deploy_parameters["volume_size"] = 256
@@ -106,6 +106,7 @@ def run_test(args):
 
             second_deploy_parameters = deploy_parameters.copy()
             second_deploy_parameters["endpoint_name"] = second_endpoint_name
+            print(second_deploy_parameters)
 
             second_predictor = second_model.deploy(**second_deploy_parameters)
             logging.info("Second endpoint deployment complete.")
@@ -126,7 +127,7 @@ def run_test(args):
                 "instance_type": args.instance_type,
                 "initial_instance_count": 1,
                 "endpoint_name": endpoint_name,
-                "container_startup_health_check_timeout": 1800,
+                #"container_startup_health_check_timeout": 1800,
             }
             if args.instance_type.startswith("ml.inf2"):
                 deploy_parameters["volume_size"] = 256
