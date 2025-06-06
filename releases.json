@@ -131,7 +131,7 @@
     "releases": [
         {
             "framework": "TGILLAMACPP",
-            "device": "cpu",
+            "device": "gpu",
             "version": "3.2.3",
             "cuda_version": "cu128",
             "os_version": "ubuntu22.04",
