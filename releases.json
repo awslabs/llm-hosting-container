@@ -100,37 +100,43 @@
                 "python_version": "py310",
                 "pytorch_version": "2.0.1"
             }
-        ]
-    },
+        ],
+    
+    "TGILLAMACPP": [
+        {
+            "device": "gpu",
+            "min_version": "3.2.3",
+            "max_version": "3.2.3",
+            "os_version": "ubuntu22.04",
+            "cuda_version": "cu128",
+            "python_version": "py311",
+            "pytorch_version": "2.6.0"
+        },
+        {
+            "device": "cpu",
+            "min_version": "3.2.3",
+            "max_version": "3.2.3",
+            "os_version": "ubuntu22.04",
+            "cuda_version": "cu128",
+            "python_version": "py311",
+            "pytorch_version": "2.6.0"
+        }
+    ]
+},
+    
     "ignore_vulnerabilities": [
         "CVE-2024-42154 - linux",
         "CVE-2025-32434 - torch"
     ],
     "releases": [
         {
-            "framework": "TEI",
+            "framework": "TGILLAMACPP",
             "device": "gpu",
-            "version": "1.7.0",
+            "version": "3.2.3",
+            "cuda_version": "cu128",
             "os_version": "ubuntu22.04",
-            "python_version": "py310",
-            "pytorch_version": "2.0.1",
-            "cuda_version": "cu122"
-        },
-        {
-            "framework": "TEI",
-            "device": "cpu",
-            "version": "1.7.0",
-            "os_version": "ubuntu22.04",
-            "python_version": "py310",
-            "pytorch_version": "2.0.1"
-        },
-        {
-            "framework": "TGI",
-            "device": "inf2",
-            "version": "0.0.28",
-            "os_version": "ubuntu22.04",
-            "python_version": "py310",
-            "pytorch_version": "2.1.2"
+            "python_version": "py311",
+            "pytorch_version": "2.6.0"
         }
     ]
 }
