@@ -102,7 +102,7 @@ RUN HOME_DIR=/root && \
 
 COPY /huggingface/pytorch/tgillamacpp/docker/3.2.3/THIRD-PARTY-LICENSES /root/THIRD-PARTY-LICENSES
 COPY /huggingface/pytorch/tgillamacpp/docker/3.2.3/gpu/start-cuda-compat.sh start-cuda-compat.sh
-RUN chmod +x start-cuda-compat.sh
+#RUN chmod +x start-cuda-compat.sh
 
 COPY /huggingface/pytorch/tgillamacpp/docker/3.2.3/gpu/entrypoint.sh entrypoint.sh
 RUN chmod +x entrypoint.sh 
