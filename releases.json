@@ -130,15 +130,15 @@
     ],
     "releases": [
 
-        {
-            "framework": "TGILLAMACPP",
-            "device": "gpu",
-            "version": "3.2.3",
-            "os_version": "ubuntu22.04",
-            "cuda_version": "cu128",
-            "python_version": "py311",
-            "pytorch_version": "2.6.0"
-        },
+        // {
+        //     "framework": "TGILLAMACPP",
+        //     "device": "gpu",
+        //     "version": "3.2.3",
+        //     "os_version": "ubuntu22.04",
+        //     "cuda_version": "cu128",
+        //     "python_version": "py311",
+        //     "pytorch_version": "2.6.0"
+        // },
         {
             "framework": "TGILLAMACPP",
             "device": "cpu",
