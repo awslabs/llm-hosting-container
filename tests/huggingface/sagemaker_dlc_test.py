@@ -194,7 +194,7 @@ def get_models_for_image(image_type, device_type):
                     "Qwen/Qwen2-0.5B-Instruct",
                     None,
                     "ml.g5.12xlarge",
-                    None,
+                    "Qwen/Qwen2.5-0.5B-Instruct-GGUF",
                 )
             ]
         elif device_type == "cpu":
@@ -203,7 +203,7 @@ def get_models_for_image(image_type, device_type):
                     "Qwen/Qwen2-0.5B-Instruct",
                     None,
                     "ml.m5.12xlarge",
-                    None,
+                    "Qwen/Qwen2.5-0.5B-Instruct-GGUF",
                 )
             ]
         else:
