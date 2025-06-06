@@ -94,7 +94,7 @@
             {
                 "device": "gpu",
                 "min_version": "1.2.1",
-                "max_version": "1.6.0",
+                "max_version": "1.7.0",
                 "os_version": "ubuntu22.04",
                 "cuda_version": "cu122",
                 "python_version": "py310",
@@ -103,7 +103,7 @@
             {
                 "device": "cpu",
                 "min_version": "1.2.1",
-                "max_version": "1.6.0",
+                "max_version": "1.7.0",
                 "os_version": "ubuntu22.04",
                 "cuda_version": "cu122",
                 "python_version": "py310",
@@ -112,7 +112,8 @@
         ]
     },
     "ignore_vulnerabilities": [
-        "CVE-2024-42154 - linux"
+        "CVE-2024-42154 - linux",
+        "CVE-2025-32434 - torch"
     ],
     "releases": [
         {
@@ -123,6 +124,8 @@
             "cuda_version": "cu124",
             "python_version": "py311",
             "pytorch_version": "2.7.0"
+
         }
+
     ]
 }
