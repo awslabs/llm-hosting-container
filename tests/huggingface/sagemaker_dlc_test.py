@@ -58,10 +58,10 @@ def run_test(args):
         data = {
             "inputs": "What is Deep Learning?",
             "parameters": {
-                "max_new_tokens": 50,
+                "max_new_tokens": 10,
                 "top_k": 50,
                 "top_p": 0.95,
-                "do_sample": True,
+                "do_sample": False,
             },
         }
 
