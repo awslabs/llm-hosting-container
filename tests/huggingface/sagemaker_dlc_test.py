@@ -54,6 +54,7 @@ def run_test(args):
         }
         if args.instance_type.startswith("ml.inf2"):
             deploy_parameters["volume_size"] = 256
+            deploy_parameters["inference_ami_version"] = "al2-ami-sagemaker-inference-neuron-2"
         predictor = model.deploy(**deploy_parameters)
 
         logging.info("Endpoint deployment complete.")
