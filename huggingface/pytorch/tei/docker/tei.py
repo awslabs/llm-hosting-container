@@ -80,11 +80,11 @@ def test(configs: ReleaseConfigs):
     for config in configs.releases:
         LOG.info(f"Going to test built image for config: {config}.")
         test_role_arn = os.getenv(EnvironmentVariable.TEST_ROLE_ARN.name)
-        test_session = aws.get_session_for_role(test_role_arn)  # type: ignore
+        test_session = aws.get_session_for_role(test_role_arn)
         test_credentials = test_session.get_credentials()
         environ = os.environ.copy()
         environ.update(
-            {  # type: ignore
+            {
                 "DEVICE_TYPE": config.device.lower(),
                 "AWS_ACCESS_KEY_ID": test_credentials.access_key,
                 "AWS_SECRET_ACCESS_KEY": test_credentials.secret_key,

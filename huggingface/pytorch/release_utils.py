@@ -1,20 +1,19 @@
 import base64
+import boto3
 import dataclasses
 import datetime
+import docker
 import enum
+import git
 import json
 import logging
 import os
+from packaging.version import parse
 import re
 import subprocess
 import time
 import typing
 from typing import Dict, List
-
-import boto3
-import docker
-import git
-from packaging.version import parse
 
 # The source-of-truth dictionary mapping framework names to lists of device types.
 FRAMEWORK_DEVICE_DICT: Dict[str, List[str]] = {
@@ -102,7 +101,9 @@ class ReleaseConfigs:
                 "min_version": "0.9.0",
                 "max_version": "1.2.0",
                 "os_version": "ubuntu20.04",
-                "cuda_version": "cu120"
+                "cuda_version": "cu120",
+                "python_version": "py39",
+                "pytorch_version": "2.2.0"
             },
             {
                 "device": "inf2",
@@ -134,8 +135,8 @@ class ReleaseConfigs:
         device: str
         version: str
         os_version: str
-        python_version: typing.Optional[str] = None
-        pytorch_version: typing.Optional[str] = None
+        python_version: str
+        pytorch_version: str
         cuda_version: typing.Optional[str] = None
 
         def get_dockerfile_path(self) -> str:
@@ -183,7 +184,7 @@ class ReleaseConfigs:
             image_uri = self.get_image_uri_for_staging()
             return f"{image_uri}{ECR_RELEASED_SUFFIX_TAG}"
 
-        def get_image_uris_for_dlc(self) -> typing.List[str]:
+        def get_image_uris_for_dlc(self) -> [str]:
             """Get the image URIs for DLC with the contractual tagging for integration purposes."""
             base_tag = None
             if self.device.lower() == Device.GPU.name.lower():
@@ -202,25 +203,23 @@ class ReleaseConfigs:
             repo_uri = os.getenv(EnvironmentVariable.DLC_ECR_REPO_URI.name)
             return [f"{repo_uri}:{tag}" for tag in [base_tag, dated_tag]]
 
-        def get_image_uris_for_jumpstart(self) -> typing.List[str]:
+        def get_image_uris_for_jumpstart(self) -> [str]:
             """Get the image URIs for JumpStart"""
             base_tag = None
             repo_uri = (
-                os.getenv(EnvironmentVariable.JS_ECR_REPO_URI.name)  # type: ignore
+                os.getenv(EnvironmentVariable.JS_ECR_REPO_URI.name)
                 + f"{self.framework.lower()}"
             )
             if self.device.lower() == Device.GPU.name.lower():
-                if self.framework == "TEI":
-                    base_tag = f"{self.framework.lower()}{self.version}-gpu-{self.cuda_version}-{self.os_version}"
-                else:
-                    base_tag = f"{self.pytorch_version}-{self.framework.lower()}{self.version}-gpu-{self.python_version}-{self.cuda_version}-{self.os_version}"
+                base_tag = (
+                    f"{self.pytorch_version}-{self.framework.lower()}{self.version}-gpu-{self.python_version}-"
+                    f"{self.cuda_version}-{self.os_version}"
+                )
             elif self.device.lower() == Device.CPU.name.lower():
-                if self.framework == "TEI":
-                    base_tag = (
-                        f"{self.framework.lower()}{self.version}-cpu-{self.os_version}"
-                    )
-                else:
-                    base_tag = f"{self.pytorch_version}-{self.framework.lower()}{self.version}-cpu-{self.python_version}-{self.os_version}"
+                base_tag = (
+                    f"{self.pytorch_version}-{self.framework.lower()}{self.version}-cpu-{self.python_version}-"
+                    f"{self.os_version}"
+                )
                 repo_uri += f"-{self.device.lower()}"
             assert base_tag is not None, (
                 f"No associated JumpStart tag pattern associated with device type '{self.device}'."
@@ -237,8 +236,8 @@ class ReleaseConfigs:
         min_version: str
         max_version: str
         os_version: str
-        python_version: typing.Optional[str] = None
-        pytorch_version: typing.Optional[str] = None
+        python_version: str
+        pytorch_version: str
         cuda_version: typing.Optional[str] = None
 
         def __init__(
@@ -248,8 +247,8 @@ class ReleaseConfigs:
             min_version: str,
             max_version: str,
             os_version: str,
-            python_version: typing.Optional[str] = None,
-            pytorch_version: typing.Optional[str] = None,
+            python_version: str,
+            pytorch_version: str,
             cuda_version: typing.Optional[str] = None,
         ):
             self.framework = framework.upper()
@@ -272,13 +271,13 @@ class ReleaseConfigs:
             for combination in configs.get("permitted_combinations", {}).get(
                 framework, {}
             ):
-                pc = self.PermittedCombination(framework=framework, **combination)  # type: ignore
+                pc = self.PermittedCombination(framework=framework, **combination)
                 self.permitted_combinations.append(pc)
 
             LOG.info(
                 f"Loaded permitted combinations for {framework}: {self.permitted_combinations}."
             )
-            self.ignore_vulnerabilities: typing.List[str] = configs.get(
+            self.ignore_vulnerabilities: [str] = configs.get(
                 "ignore_vulnerabilities", []
             )
             LOG.info(f"Loaded ignore vulnerabilities: {self.ignore_vulnerabilities}.")
@@ -297,14 +296,14 @@ class ReleaseConfigs:
                 if item.get("device")
             ]
             LOG.info(f"release_devices are {release_devices}")
-            allowed_devices = FRAMEWORK_DEVICE_DICT.get(framework)  # type: ignore
-            assert set(release_devices).issubset(allowed_devices), (  # type: ignore
+            allowed_devices = FRAMEWORK_DEVICE_DICT.get(framework)
+            assert set(release_devices).issubset(allowed_devices), (
                 f"Releases contain an unsupported device type: {release_devices}."
             )
             self.releases = [
                 self.ReleaseConfig(**item)
                 for item in supported_releases
-                if item.get("device").upper() == device.upper()  # type: ignore
+                if item.get("device").upper() == device.upper()
             ]
             LOG.info(
                 f"Loaded releases for container {framework} with device type'{device}': {self.releases}."
@@ -321,7 +320,7 @@ class ReleaseConfigs:
                 min_version = parse(allowed.min_version)
                 max_version = parse(allowed.max_version)
                 if (
-                    codebuild_device.upper() == config.device.upper()  # type: ignore
+                    codebuild_device.upper() == config.device.upper()
                     and allowed.device.upper() == config.device.upper()
                     and min_version <= version <= max_version
                 ):
@@ -331,7 +330,7 @@ class ReleaseConfigs:
                         )
                     elif config.device.lower() == Device.GPU.name.lower():
                         assert (
-                            "cu" in config.cuda_version  # type: ignore
+                            "cu" in config.cuda_version
                             and config.cuda_version == allowed.cuda_version
                         ), (
                             f"Invalid CUDA version specified: {config}.\nAllowed: {allowed}"
@@ -343,33 +342,18 @@ class ReleaseConfigs:
                         "ubuntu" in config.os_version
                         and config.os_version == allowed.os_version
                     ), f"Invalid OS version specified: {config}.\nAllowed: {allowed}"
-                    # Since Text Embeddings Inference (TEI) is Rust-only, both Python and PyTorch versions don't apply
-                    if config.framework != "TEI":
-                        assert config.python_version is not None, (
-                            f"{config.framework=} requires the Python version to be specified."
-                        )
-                        assert (
-                            "py" in config.python_version  # type: ignore
-                            and config.python_version == allowed.python_version
-                        ), (
-                            f"Invalid Python version specified: {config}.\nAllowed: {allowed}"
-                        )
-                        assert config.pytorch_version is not None, (
-                            f"{config.framework=} requires the PyTorch version to be specified."
-                        )
-                        assert (
-                            re.search(r"\d+\.\d+\.\d+", config.pytorch_version)  # type: ignore
-                            and config.pytorch_version == allowed.pytorch_version
-                        ), (
-                            f"Invalid PyTorch version specified: {config}.\nAllowed: {allowed}"
-                        )
-                    else:
-                        assert config.python_version is None, (
-                            f"{config.framework=} doesn't require the Python version to be specified as it's a Rust-only image."
-                        )
-                        assert config.pytorch_version is None, (
-                            f"{config.framework=} doesn't require the PyTorch version to be specified as it's a Rust-only image."
-                        )
+                    assert (
+                        "py" in config.python_version
+                        and config.python_version == allowed.python_version
+                    ), (
+                        f"Invalid Python version specified: {config}.\nAllowed: {allowed}"
+                    )
+                    assert (
+                        re.search(r"\d+\.\d+\.\d+", config.pytorch_version)
+                        and config.pytorch_version == allowed.pytorch_version
+                    ), (
+                        f"Invalid PyTorch version specified: {config}.\nAllowed: {allowed}"
+                    )
                     is_valid = True
                     LOG.info(
                         f"The following release: {config} is permitted with: {allowed}."
@@ -474,7 +458,7 @@ class DockerClient:
 
     def prune_all(self):
         """Removes all images."""
-        LOG.info("Going to prune all images.")
+        LOG.info(f"Going to prune all images.")
         self.client.images.prune(filters={"dangling": False})
 
     @staticmethod
@@ -515,7 +499,7 @@ class Aws:
             aws_session_token=credentials["SessionToken"],
         )
 
-    def get_ecr_credentials(self, image_uri: str) -> typing.Tuple[str, str]:
+    def get_ecr_credentials(self, image_uri: str) -> (str, str):
         """Gets the username and password for the given ECR image URI."""
         image_uri_parts = DockerClient.split_ecr_image_uri(image_uri)
         response = self.ecr.get_authorization_token(
@@ -537,7 +521,7 @@ class Aws:
                 if ECR_TAG_DIGEST_PREFIX in tag
                 else {"imageTag": tag}
             ]
-            self.ecr.describe_images(
+            response = self.ecr.describe_images(
                 registryId=image_uri_parts.aws_account_id,
                 repositoryName=image_uri_parts.repo,
                 imageIds=image_ids,
@@ -599,7 +583,7 @@ class Aws:
 
     def get_image_scan_findings(
         self, image_uri: str, severities: typing.Set[str], excluded_ids: typing.Set[str]
-    ) -> typing.List[str]:
+    ) -> [str]:
         """Gets all vulnerabilities of the provided image matching the specified severities."""
         results = []
         _, enhanced_findings = self._get_ecr_scan_results(image_uri)
@@ -655,14 +639,14 @@ class DlcPipeline:
         """Refreshes assume-role credentials for DLC integrations as role chaining has a hard limit of 1 hour."""
         if (
             self.dlc_aws is None
-            or time.time() - self.last_refresh_time  # type: ignore
+            or time.time() - self.last_refresh_time
             > DEFAULT_CRED_REFRESH_INTERVAL_IN_SECONDS
         ):
             LOG.info(
                 f"Refreshing AWS credentials for DLC integrations. Last refresh at: {self.last_refresh_time}."
             )
             dlc_role_arn = os.getenv(EnvironmentVariable.DLC_ROLE_ARN.name)
-            dlc_session = self.aws.get_session_for_role(dlc_role_arn)  # type: ignore
+            dlc_session = self.aws.get_session_for_role(dlc_role_arn)
             self.dlc_aws = Aws(session=dlc_session)
             self.last_refresh_time = time.time()
 
@@ -670,7 +654,7 @@ class DlcPipeline:
         """Pushes the local image associated with the given configs to the DLC staging repo."""
         staged_image_uri = config.get_image_uri_for_staging()
         dlc_uris = config.get_image_uris_for_dlc()
-        username, password = self.dlc_aws.get_ecr_credentials(dlc_uris[0])  # type: ignore
+        username, password = self.dlc_aws.get_ecr_credentials(dlc_uris[0])
         self.docker_client.login(username, password, dlc_uris[0])
         for dlc_uri in dlc_uris:
             self.docker_client.tag(staged_image_uri, dlc_uri)
@@ -699,12 +683,12 @@ class DlcPipeline:
             f"No parameter configurations associated with device: {config.device}"
         )
         for name, value in parameters.items():
-            self.dlc_aws.set_parameter(name, value)  # type: ignore
+            self.dlc_aws.set_parameter(name, value)
 
     @staticmethod
     def get_pipeline_for_device(device: typing.Optional[str]):
         """Gets the DLC pipeline name for the given device."""
-        pipeline = DLC_PIPELINE_NAME_BY_DEVICE.get(device.lower())  # type: ignore
+        pipeline = DLC_PIPELINE_NAME_BY_DEVICE.get(device.lower())
         assert pipeline is not None, (
             f"No DLC pipeline name associated with device type: {device}."
         )
@@ -719,7 +703,7 @@ class DlcPipeline:
             == "true"
         ):
             pipeline_name = self.get_pipeline_for_device(config.device)
-            execution_id = self.dlc_aws.start_pipeline(pipeline_name)  # type: ignore
+            execution_id = self.dlc_aws.start_pipeline(pipeline_name)
             LOG.info(
                 f"Started pipeline '{pipeline_name}' with execution ID: {execution_id}"
             )
@@ -733,7 +717,7 @@ class DlcPipeline:
                 while status == PipelineStatus.IN_PROGRESS.name:
                     time.sleep(DEFAULT_WAIT_INTERVAL_IN_SECONDS)
                     self._refresh_credentials()
-                    status = self.dlc_aws.get_pipeline_status(  # type: ignore
+                    status = self.dlc_aws.get_pipeline_status(
                         pipeline_name, execution_id
                     )
                     LOG.info(
