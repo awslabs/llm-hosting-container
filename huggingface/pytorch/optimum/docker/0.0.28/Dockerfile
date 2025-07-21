@@ -119,7 +119,6 @@ RUN apt-get update -y \
     aws-neuronx-runtime-lib=2.22.19.0-5856c0b42 \
     aws-neuronx-tools=2.19.0.0 \
     libxml2 \
-    linux-libc-dev \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -168,6 +167,10 @@ ENTRYPOINT ["./entrypoint.sh"]
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl unzip \
     && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    linux-libc-dev
+
 RUN HOME_DIR=/root && \
     pip install requests && \
     curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
