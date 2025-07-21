@@ -119,6 +119,7 @@ RUN apt-get update -y \
     aws-neuronx-runtime-lib=2.22.19.0-5856c0b42 \
     aws-neuronx-tools=2.19.0.0 \
     libxml2 \
+    linux-libc-dev \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
