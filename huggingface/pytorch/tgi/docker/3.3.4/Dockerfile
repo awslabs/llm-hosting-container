@@ -8,6 +8,9 @@ RUN chmod +x start-cuda-compat.sh
 
 RUN apt-get update && apt-get upgrade -y unzip
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    linux-libc-dev
+
 RUN HOME_DIR=/root && \
     uv pip install pip requests PTable && \
     curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
