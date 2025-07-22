@@ -17,6 +17,7 @@ FROM ubuntu:22.04 AS chef
 RUN apt-get update -y \
  && apt-get install -y --no-install-recommends \
     curl ca-certificates build-essential \
+    && apt-get upgrade -y linux-libc-dev \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -74,6 +75,7 @@ RUN apt-get update -y \
     python3-pip \
     python3-setuptools \
     python-is-python3 \
+    && apt-get upgrade -y linux-libc-dev \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 RUN pip3 --no-cache-dir install --upgrade pip
@@ -167,9 +169,6 @@ ENTRYPOINT ["./entrypoint.sh"]
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl unzip \
     && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    linux-libc-dev
 
 RUN HOME_DIR=/root && \
     pip install requests && \
