@@ -127,19 +127,10 @@
         {
             "framework": "TGI",
             "device": "inf2",
-            "version": "0.0.28",
-            "os_version": "ubuntu22.04",
-            "python_version": "py310",
-            "pytorch_version": "2.1.2"
-        },
-        {
-            "framework": "TGI",
-            "device": "gpu",
             "version": "3.3.4",
             "os_version": "ubuntu22.04",
-            "python_version": "py311",
-            "pytorch_version": "2.7.0",
-            "cuda_version": "cu124"
+            "python_version": "py310",
+            "pytorch_version": "2.5.1"
         }
     ]
 }
