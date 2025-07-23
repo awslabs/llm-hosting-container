@@ -34,7 +34,9 @@ RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["./entrypoint.sh"]
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl unzip \
+RUN apt-get update \
+    && apt-get upgrade -y linux-libc-dev \
+    && apt-get install -y --no-install-recommends curl unzip \
     && rm -rf /var/lib/apt/lists/*
 RUN HOME_DIR=/root && \
     pip install requests && \
