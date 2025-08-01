@@ -70,6 +70,7 @@ RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-g
     libomp-dev \
     ca-certificates \
     libssl-dev \
+    libxml2 \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
