@@ -85,6 +85,7 @@ ENV HUGGINGFACE_HUB_CACHE=/opt/ml/model \
 RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     libomp-dev \
     ca-certificates \
+    libxml2 \
     libssl-dev \
     curl \
     && rm -rf /var/lib/apt/lists/*
