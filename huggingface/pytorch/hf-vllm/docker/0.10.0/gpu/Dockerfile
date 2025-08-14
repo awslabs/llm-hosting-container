@@ -537,7 +537,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 ENV VLLM_USAGE_SOURCE production-docker-image
 
 # define sagemaker first, so it is not default from `docker build`
-FROM vllm-openai-base AS vllm-sagemaker
+FROM vllm-openai-base AS sagemaker
 
 COPY /huggingface/pytorch/hf-vllm/docker/0.10.0/start-cuda-compat.sh start-cuda-compat.sh
 RUN chmod +x start-cuda-compat.sh
