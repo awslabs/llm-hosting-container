@@ -1,5 +1,9 @@
 name: PR CodeBuild Trigger (Privileged)
 
+# DEPLOYMENT NOTE: This workflow references "PR Team Check (Untrusted)" workflow.
+# If deploying both workflows simultaneously, the referenced workflow must exist
+# in the main branch first. See docs/webhook-deployment-guide.md for deployment strategies.
+
 on:
   workflow_run:
     workflows: ["PR Team Check (Untrusted)"]
