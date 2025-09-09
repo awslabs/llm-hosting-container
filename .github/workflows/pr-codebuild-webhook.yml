@@ -1,0 +1,213 @@
+name: PR Team Check and CodeBuild Trigger
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-team-and-trigger-builds:
+    runs-on: ubuntu-latest
+    steps:
+      # SECURITY: This workflow uses pull_request_target to prevent malicious workflow modifications
+      # The workflow code runs from the main branch, but we still need to fetch PR commits for analysis
+      - name: Checkout repository (main branch)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Fetch PR commits
+        run: |
+          # Fetch the PR branch to analyze commits
+          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-branch
+          git fetch origin ${{ github.event.pull_request.head.sha }}
+
+      - name: Security validation
+        id: security-check
+        run: |
+          echo "🔒 Security Check: Validating PR does not modify workflow files"
+          
+          # Check if PR modifies any workflow files
+          WORKFLOW_CHANGES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...${{ github.event.pull_request.head.sha }} | grep -E '^\.github/workflows/' || true)
+          
+          if [[ -n "$WORKFLOW_CHANGES" ]]; then
+            echo "🚨 SECURITY ALERT: This PR modifies workflow files:"
+            echo "$WORKFLOW_CHANGES"
+            echo "::error::SECURITY BLOCK: PR modifies GitHub Actions workflows. CodeBuild execution BLOCKED."
+            
+            # Post security block comment on PR
+            curl -X POST \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
+              -d "{\"body\":\"🚨 **SECURITY BLOCK**\\n\\n**CodeBuild execution has been BLOCKED** because this PR modifies GitHub Actions workflow files:\\n\`\`\`\\n$WORKFLOW_CHANGES\\n\`\`\`\\n\\n**Security Policy:** PRs that modify workflows cannot trigger automated builds to prevent security bypass attacks.\\n\\n**Required Actions:**\\n1. Get approval from code owners (@awslabs/sagemaker-1p-algorithms)\\n2. Manual review of all workflow changes\\n3. Separate the workflow changes into a different PR if needed\\n\\n**This is an automated security measure to protect AWS resources.**\"}"
+            
+            # Set output to block further execution
+            echo "workflow_modified=true" >> $GITHUB_OUTPUT
+            echo "🚨 EXECUTION BLOCKED - Workflow files modified"
+          else
+            echo "✅ No workflow files modified in this PR"
+            echo "workflow_modified=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get PR and commit authors
+        id: get-authors
+        run: |
+          # Get PR author
+          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+          echo "pr_author=$PR_AUTHOR" >> $GITHUB_OUTPUT
+          echo "PR Author: $PR_AUTHOR"
+          
+          # Get all commit authors in this PR
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+          COMMIT_AUTHORS=$(git log origin/${{ github.event.pull_request.base.ref }}..${{ github.event.pull_request.head.sha }} --format="%an" | sort -u | tr '\n' ',' | sed 's/,$//')
+          echo "commit_authors=$COMMIT_AUTHORS" >> $GITHUB_OUTPUT
+          echo "Commit Authors: $COMMIT_AUTHORS"
+          
+          # Get all commit author usernames (GitHub usernames)
+          COMMIT_USERNAMES=""
+          for sha in $(git log origin/${{ github.event.pull_request.base.ref }}..${{ github.event.pull_request.head.sha }} --format="%H"); do
+            author_email=$(git show --format="%ae" --no-patch $sha)
+            # Try to get GitHub username from commit
+            if [[ "$author_email" == *"@users.noreply.github.com" ]]; then
+              username=$(echo "$author_email" | cut -d'@' -f1 | sed 's/^[0-9]*+//')
+              COMMIT_USERNAMES="$COMMIT_USERNAMES,$username"
+            fi
+          done
+          COMMIT_USERNAMES=$(echo "$COMMIT_USERNAMES" | sed 's/^,//' | sed 's/,$//')
+          echo "commit_usernames=$COMMIT_USERNAMES" >> $GITHUB_OUTPUT
+          echo "Commit Usernames: $COMMIT_USERNAMES"
+
+      - name: Check team membership for PR author
+        id: check-pr-author
+        run: |
+          TEAM_MEMBER_FOUND=false
+          
+          # Check PR author team membership
+          echo "Checking team membership for PR author: ${{ steps.get-authors.outputs.pr_author }}"
+          
+          # Check if PR author is in the team
+          response=$(curl -s -w "%{http_code}" -o /tmp/team_check \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/orgs/awslabs/teams/sagemaker-1p-algorithms/members/${{ steps.get-authors.outputs.pr_author }}")
+          
+          if [[ "$response" == "204" ]]; then
+            echo "✅ PR author ${{ steps.get-authors.outputs.pr_author }} is a member of sagemaker-1p-algorithms team"
+            TEAM_MEMBER_FOUND=true
+          elif [[ "$response" == "404" ]]; then
+            echo "❌ PR author ${{ steps.get-authors.outputs.pr_author }} is not a member of sagemaker-1p-algorithms team"
+          else
+            echo "⚠️  Unable to verify team membership for PR author (HTTP $response)"
+            cat /tmp/team_check
+          fi
+          
+          echo "pr_author_is_member=$TEAM_MEMBER_FOUND" >> $GITHUB_OUTPUT
+
+      - name: Check team membership for commit authors
+        id: check-commit-authors
+        run: |
+          TEAM_MEMBER_FOUND=false
+          
+          # Check commit authors if we have usernames
+          if [[ -n "${{ steps.get-authors.outputs.commit_usernames }}" ]]; then
+            IFS=',' read -ra USERNAMES <<< "${{ steps.get-authors.outputs.commit_usernames }}"
+            for username in "${USERNAMES[@]}"; do
+              if [[ -n "$username" ]]; then
+                echo "Checking team membership for commit author: $username"
+                
+                response=$(curl -s -w "%{http_code}" -o /tmp/team_check_commit \
+                  -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                  -H "Accept: application/vnd.github.v3+json" \
+                  "https://api.github.com/orgs/awslabs/teams/sagemaker-1p-algorithms/members/$username")
+                
+                if [[ "$response" == "204" ]]; then
+                  echo "✅ Commit author $username is a member of sagemaker-1p-algorithms team"
+                  TEAM_MEMBER_FOUND=true
+                  break
+                elif [[ "$response" == "404" ]]; then
+                  echo "❌ Commit author $username is not a member of sagemaker-1p-algorithms team"
+                else
+                  echo "⚠️  Unable to verify team membership for commit author $username (HTTP $response)"
+                fi
+              fi
+            done
+          else
+            echo "No GitHub usernames found in commit authors"
+          fi
+          
+          echo "commit_author_is_member=$TEAM_MEMBER_FOUND" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS Credentials
+        if: |
+          steps.security-check.outputs.workflow_modified == 'false' && 
+          (steps.check-pr-author.outputs.pr_author_is_member == 'true' || steps.check-commit-authors.outputs.commit_author_is_member == 'true')
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      - name: Trigger CodeBuild Projects
+        if: |
+          steps.security-check.outputs.workflow_modified == 'false' && 
+          (steps.check-pr-author.outputs.pr_author_is_member == 'true' || steps.check-commit-authors.outputs.commit_author_is_member == 'true')
+        run: |
+          echo "🚀 Team member found! Triggering CodeBuild projects..."
+          
+          # Trigger tgi-pr-GPU CodeBuild project
+          echo "Starting tgi-pr-GPU build..."
+          TGI_BUILD_ID=$(aws codebuild start-build \
+            --project-name tgi-pr-GPU \
+            --source-version ${{ github.event.pull_request.head.sha }} \
+            --environment-variables-override \
+              name=GITHUB_PR_NUMBER,value=${{ github.event.pull_request.number }} \
+              name=GITHUB_PR_HEAD_SHA,value=${{ github.event.pull_request.head.sha }} \
+              name=GITHUB_PR_BASE_SHA,value=${{ github.event.pull_request.base.sha }} \
+              name=GITHUB_REPOSITORY,value=${{ github.repository }} \
+            --query 'build.id' --output text)
+          
+          echo "TGI CodeBuild started with ID: $TGI_BUILD_ID"
+          
+          # Trigger tei-pr-CPU CodeBuild project
+          echo "Starting tei-pr-CPU build..."
+          TEI_BUILD_ID=$(aws codebuild start-build \
+            --project-name tei-pr-CPU \
+            --source-version ${{ github.event.pull_request.head.sha }} \
+            --environment-variables-override \
+              name=GITHUB_PR_NUMBER,value=${{ github.event.pull_request.number }} \
+              name=GITHUB_PR_HEAD_SHA,value=${{ github.event.pull_request.head.sha }} \
+              name=GITHUB_PR_BASE_SHA,value=${{ github.event.pull_request.base.sha }} \
+              name=GITHUB_REPOSITORY,value=${{ github.repository }} \
+            --query 'build.id' --output text)
+          
+          echo "TEI CodeBuild started with ID: $TEI_BUILD_ID"
+          
+          # Create a comment on the PR with build information
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
+            -d "{\"body\":\"🚀 **CodeBuild Triggered**\\n\\n✅ Team member verification passed\\n\\n**Build IDs:**\\n- TGI GPU Build: \`$TGI_BUILD_ID\`\\n- TEI CPU Build: \`$TEI_BUILD_ID\`\\n\\nYou can monitor the builds in the [AWS CodeBuild Console](https://us-west-2.console.aws.amazon.com/codesuite/codebuild/projects).\"}"
+
+      - name: Team membership check failed
+        if: steps.check-pr-author.outputs.pr_author_is_member == 'false' && steps.check-commit-authors.outputs.commit_author_is_member == 'false'
+        run: |
+          echo "❌ Access denied: Neither PR author nor commit authors are members of the sagemaker-1p-algorithms team"
+          
+          # Create a comment on the PR about the failed check
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
+            -d "{\"body\":\"❌ **CodeBuild Access Denied**\\n\\nThe PR author and commit authors are not members of the \`sagemaker-1p-algorithms\` team.\\n\\n**Checked:**\\n- PR Author: @${{ steps.get-authors.outputs.pr_author }}\\n- Commit Authors: ${{ steps.get-authors.outputs.commit_authors }}\\n\\nPlease ensure you are a member of the required team to trigger builds.\"}"
+          
+          exit 1
+
+      - name: Security block failure
+        if: steps.security-check.outputs.workflow_modified == 'true'
+        run: |
+          echo "🚨 SECURITY BLOCK: Workflow execution terminated due to workflow file modifications"
+          echo "::error::SECURITY POLICY VIOLATION: This PR modifies GitHub Actions workflows and has been blocked from executing CodeBuild projects."
+          echo "::error::This is a security measure to prevent malicious workflow modifications from bypassing team membership checks."
+          echo "::error::Please get approval from code owners (@awslabs/sagemaker-1p-algorithms) and consider separating workflow changes into a different PR."
+          exit 1
