@@ -1,191 +1,242 @@
-# Webhook Security Analysis: How It Works and Potential Vulnerabilities
+# GitHub Webhook Security Analysis
 
-## How the Webhook Works
+## Overview
 
-### Overview
-The GitHub Actions webhook (`.github/workflows/pr-codebuild-webhook.yml`) is designed to automatically trigger AWS CodeBuild projects when pull requests are created by members of the `sagemaker-1p-algorithms` team.
+This document analyzes the security implementation of the GitHub webhook for the `llm-hosting-container` repository, which triggers AWS CodeBuild projects based on team membership verification.
 
-### Workflow Execution Flow
+## Security Architecture: Two-Workflow Pattern
 
-1. **Trigger Events**
-   - Activates on PR events: `opened`, `synchronize`, `reopened`
-   - Runs on GitHub-hosted Ubuntu runners
+### The Secure Solution
 
-2. **Author Identification**
-   - Extracts PR author from `github.event.pull_request.user.login`
-   - Analyzes git history to find all commit authors in the PR
-   - Attempts to map commit emails to GitHub usernames
+To address the "Checkout of untrusted code in trusted context" vulnerability, we've implemented a **two-workflow security pattern** that separates untrusted PR processing from privileged operations.
 
-3. **Team Membership Verification**
-   - Uses GitHub API to check if PR author is in `awslabs/sagemaker-1p-algorithms` team
-   - Checks each commit author's team membership
-   - Uses `GITHUB_TOKEN` (automatically provided by GitHub Actions)
+## Workflow Architecture
 
-4. **CodeBuild Triggering**
-   - If any author is a team member, configures AWS credentials
-   - Triggers both `tgi-pr-GPU` and `tei-pr-CPU` CodeBuild projects
-   - Posts success/failure comments on the PR
+### Workflow 1: PR Team Check (Untrusted) - `pr-team-check.yml`
+
+**Purpose**: Process untrusted PR code in an isolated environment
+**Trigger**: `pull_request` (runs in unprivileged context)
+**Permissions**: `contents: read` only
+
+**Key Features**:
+- ✅ Safely checks out PR code (untrusted)
+- ✅ Extracts PR and commit author information
+- ✅ Detects workflow file modifications
+- ✅ Creates artifacts with validated data
+- ✅ No access to secrets or AWS credentials
+
+### Workflow 2: PR CodeBuild Trigger (Privileged) - `pr-codebuild-trigger.yml`
+
+**Purpose**: Perform privileged operations with validated data
+**Trigger**: `workflow_run` (triggered by completion of first workflow)
+**Permissions**: `contents: read`, `pull-requests: write`, `issues: write`
+
+**Key Features**:
+- ✅ Downloads and validates artifacts from untrusted workflow
+- ✅ Performs team membership checks with GitHub API
+- ✅ Has access to AWS credentials and secrets
+- ✅ Triggers CodeBuild projects
+- ✅ Posts comments on PRs
 
 ## Security Vulnerability: Workflow Modification Attack
 
-### The Problem
-**Yes, someone can bypass the team check by modifying the workflow file in their PR.**
+### The Original Problem
 
-### Attack Scenario
-1. **Attacker creates a PR** that includes changes to `.github/workflows/pr-codebuild-webhook.yml`
-2. **Modifies the workflow** to remove or bypass team membership checks
-3. **GitHub Actions runs the modified workflow** from the PR branch
-4. **CodeBuild projects are triggered** without proper authorization
+The initial single-workflow implementation had a critical security vulnerability:
 
-### Example Malicious Modifications
+1. **Attacker creates a malicious PR** that modifies workflow files
+2. **Workflow runs with modified code** from the PR branch
+3. **Security checks are bypassed** because the attacker controls the workflow logic
+4. **AWS CodeBuild projects are triggered** without proper authorization
+5. **AWS resources are compromised** through unauthorized access
 
-#### 1. Remove Team Check Entirely
+### Attack Scenario (Previous Implementation)
+
 ```yaml
-# Attacker removes the team membership check steps
-- name: Trigger CodeBuild Projects
-  # Remove the 'if' condition that checks team membership
+# Malicious workflow modification in attacker's PR
+- name: Check team membership for PR author
   run: |
-    echo "🚀 Triggering CodeBuild projects..."
-    # ... rest of CodeBuild triggering code
-```
-
-#### 2. Always Pass Team Check
-```yaml
-- name: Fake team check
-  id: check-pr-author
-  run: |
+    # Attacker bypasses the real team check
     echo "pr_author_is_member=true" >> $GITHUB_OUTPUT
 ```
 
-#### 3. Modify Team Name
-```yaml
-# Change team name to a team the attacker controls
-"https://api.github.com/orgs/awslabs/teams/attacker-controlled-team/members/$username"
-```
+This allowed any external contributor to bypass team membership checks and trigger expensive AWS CodeBuild projects.
 
-## Why This Vulnerability Exists
+## Security Solution: Multi-Layered Protection
 
-### GitHub Actions Security Model
-- **PR workflows run with the PR's code**: GitHub Actions executes the workflow file from the PR branch
-- **Access to secrets**: PR workflows have access to repository secrets (AWS credentials)
-- **No built-in protection**: GitHub doesn't prevent workflow modifications in PRs by default
+### 1. Two-Workflow Isolation Pattern
 
-## Security Mitigations and Recommendations
+**Untrusted Workflow (`pull_request`)**:
+- Processes PR code in isolated environment
+- No access to secrets or AWS credentials
+- Cannot trigger privileged operations
+- Creates validated artifacts for privileged workflow
 
-### 1. Branch Protection Rules (Recommended)
-```yaml
-# Configure in GitHub repository settings
-branch_protection:
-  required_status_checks:
-    - "check-team-and-trigger-builds"
-  enforce_admins: true
-  required_pull_request_reviews:
-    required_approving_review_count: 2
-    dismiss_stale_reviews: true
-    require_code_owner_reviews: true
-```
+**Privileged Workflow (`workflow_run`)**:
+- Runs trusted code from main branch
+- Has access to secrets and AWS credentials
+- Downloads and validates artifacts from untrusted workflow
+- Performs all privileged operations
 
-### 2. Use `pull_request_target` Instead of `pull_request`
-```yaml
-# More secure trigger - runs workflow from main branch
-on:
-  pull_request_target:
-    types: [opened, synchronize, reopened]
-```
-
-**Benefits:**
-- Workflow code comes from the target branch (main), not PR branch
-- Attacker cannot modify the workflow logic
-- Still has access to PR information via `github.event`
-
-### 3. Separate Workflow for Security Checks
-Create a separate workflow that cannot be modified:
+### 2. Artifact Validation and Sanitization
 
 ```yaml
-# .github/workflows/security-gate.yml (protected)
-name: Security Gate
-on:
-  pull_request_target:
-    types: [opened, synchronize, reopened]
-
-jobs:
-  security-check:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Team membership check
-        # Immutable team check logic
-      - name: Set status check
-        # Create a required status check
+# Privileged workflow validates all data from artifacts
+- name: Extract and validate PR information
+  run: |
+    # Validate PR_NUMBER is numeric
+    if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+      echo "::error::Invalid PR number: $PR_NUMBER"
+      exit 1
+    fi
+    
+    # Validate SHA format (40 character hex)
+    if ! [[ "$HEAD_SHA" =~ ^[a-f0-9]{40}$ ]]; then
+      echo "::error::Invalid HEAD SHA format: $HEAD_SHA"
+      exit 1
+    fi
 ```
 
-### 4. CODEOWNERS File Protection
+### 3. Security Validation Step
+
+```yaml
+- name: Security validation
+  run: |
+    if [[ "$workflow_modified" == "true" ]]; then
+      echo "🚨 SECURITY BLOCK: This PR modifies workflow files"
+      # Block execution and post security warning
+    fi
 ```
-# CODEOWNERS file
+
+### 4. Conditional Execution Protection
+
+```yaml
+- name: Configure AWS Credentials
+  if: |
+    steps.security-check.outputs.security_blocked == 'false' && 
+    (team membership conditions...)
+```
+
+### 5. CODEOWNERS Protection
+
+```
 .github/workflows/ @awslabs/sagemaker-1p-algorithms
 ```
 
-### 5. Environment Protection Rules
-- Use GitHub Environments with protection rules
-- Require manual approval for deployments
-- Restrict environment access to specific teams
+## Security Benefits of Two-Workflow Pattern
 
-### 6. External Webhook (Most Secure)
-Instead of GitHub Actions, use an external webhook service:
+### ✅ **Isolation of Untrusted Code**
+- PR code runs in unprivileged environment
+- No access to secrets or AWS credentials
+- Cannot directly trigger privileged operations
 
+### ✅ **Trusted Execution Context**
+- Privileged operations run trusted code from main branch
+- Attacker cannot modify privileged workflow logic
+- All data from untrusted workflow is validated
+
+### ✅ **Defense in Depth**
+- Multiple validation layers
+- Artifact sanitization
+- Security checks in both workflows
+
+### ✅ **Fail-Safe Defaults**
+- Block execution when validation fails
+- Explicit security error messages
+- No silent failures
+
+## Implementation Phases
+
+### Phase 1: Two-Workflow Architecture ✅
+- Separate untrusted and privileged workflows
+- Implement artifact-based communication
+- Add comprehensive validation
+
+### Phase 2: Enhanced Security Validation ✅
+- Workflow modification detection
+- Data sanitization and validation
+- Security block mechanisms
+
+### Phase 3: Access Control & Monitoring ✅
+- CODEOWNERS file protection
+- Explicit permissions configuration
+- Comprehensive audit logging
+
+## Security Best Practices Applied
+
+1. **Principle of Least Privilege**: Minimal permissions for each workflow
+2. **Defense in Depth**: Multiple security layers and validations
+3. **Fail-Safe Defaults**: Block execution when security checks fail
+4. **Input Validation**: Sanitize all data from untrusted sources
+5. **Audit Trail**: Comprehensive logging of all security decisions
+6. **Human Oversight**: Required reviews for workflow changes
+
+## Comparison: Before vs After
+
+### Before (Vulnerable)
 ```yaml
-# External service validates team membership
-# Only triggers CodeBuild after verification
-# Cannot be modified by PR authors
+on: pull_request_target  # Privileged context
+jobs:
+  build:
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}  # ❌ Untrusted code
+      - name: Team check
+        run: |
+          # ❌ Attacker can modify this logic
 ```
 
-## Recommended Implementation Strategy
+### After (Secure)
+```yaml
+# Workflow 1: Untrusted
+on: pull_request  # ❌ Unprivileged context
+jobs:
+  check:
+    steps:
+      - uses: actions/checkout@v4  # ✅ Safe in unprivileged context
+      - name: Create artifacts  # ✅ No secrets access
 
-### Phase 1: Immediate Security (Low Risk)
-1. **Switch to `pull_request_target`**
-2. **Add CODEOWNERS protection**
-3. **Enable branch protection rules**
+# Workflow 2: Privileged  
+on: workflow_run  # ✅ Triggered by completion
+jobs:
+  trigger:
+    steps:
+      - name: Download artifacts  # ✅ Validate untrusted data
+      - name: Team check  # ✅ Trusted code from main branch
+```
 
-### Phase 2: Enhanced Security (Medium Risk)
-1. **Implement environment protection**
-2. **Add manual approval gates**
-3. **Create separate security workflow**
+## Monitoring and Detection
 
-### Phase 3: Maximum Security (High Risk)
-1. **External webhook service**
-2. **Zero-trust verification**
-3. **Audit logging and monitoring**
-
-## Current Risk Assessment
-
-### Risk Level: **HIGH**
-- ✅ **Easy to exploit**: Simple workflow modification
-- ✅ **High impact**: Unauthorized CodeBuild execution
-- ✅ **AWS resource access**: Potential cost and security implications
-- ✅ **No current protections**: Workflow can be freely modified
-
-### Immediate Actions Required
-1. **Switch to `pull_request_target` trigger**
-2. **Add CODEOWNERS file**
-3. **Enable branch protection**
-4. **Monitor for suspicious PRs**
-
-## Detection and Monitoring
-
-### Signs of Attack
-- PRs that modify `.github/workflows/` files
+### Security Indicators to Monitor
+- PRs modifying workflow files
 - Unexpected CodeBuild executions
-- PRs from unknown contributors with workflow changes
-- Failed team membership API calls
+- Failed artifact validations
+- Security block activations
 
-### Monitoring Setup
-```bash
-# GitHub webhook to monitor workflow changes
-# AWS CloudTrail for CodeBuild API calls
-# GitHub audit logs for team membership changes
-```
+### Audit Trail
+- All team membership checks logged
+- Security decisions recorded
+- CodeBuild triggers tracked
+- PR comments provide transparency
+
+## Remaining Considerations
+
+1. **Team Management**: Ensure `sagemaker-1p-algorithms` team is properly maintained
+2. **Access Control**: Regular audit of team membership
+3. **Monitoring**: Watch for unusual CodeBuild activity
+4. **Incident Response**: Plan for handling security breaches
+5. **Artifact Retention**: Artifacts are retained for 1 day only
 
 ## Conclusion
 
-The current webhook implementation has a **critical security vulnerability** that allows attackers to bypass team membership checks by modifying the workflow file in their PR. This is a common GitHub Actions security issue that requires immediate attention.
+The implemented two-workflow security architecture provides robust protection against workflow modification attacks and untrusted code execution while maintaining the required functionality for team-based CodeBuild triggering. 
 
-**The most effective immediate fix is switching to `pull_request_target` trigger combined with branch protection rules and CODEOWNERS file protection.**
+**Key Security Achievements**:
+- ✅ Eliminated untrusted code execution in privileged context
+- ✅ Implemented comprehensive input validation
+- ✅ Added multiple layers of security controls
+- ✅ Maintained full functionality for authorized users
+- ✅ Provided clear audit trail and transparency
+
+The multi-layered approach ensures that even if one security control fails, others will prevent unauthorized access to AWS resources. This architecture follows GitHub's recommended security best practices for handling untrusted PR content.
