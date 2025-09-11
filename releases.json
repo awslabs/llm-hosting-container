@@ -102,7 +102,7 @@
             {
                 "device": "gpu",
                 "min_version": "1.2.1",
-                "max_version": "1.8.0",
+                "max_version": "1.8.2",
                 "os_version": "ubuntu22.04",
                 "python_version": "py310",
                 "pytorch_version": "2.0.1",
@@ -111,7 +111,7 @@
             {
                 "device": "cpu",
                 "min_version": "1.2.1",
-                "max_version": "1.8.0",
+                "max_version": "1.8.2",
                 "os_version": "ubuntu22.04",
                 "python_version": "py310",
                 "pytorch_version": "2.0.1"
@@ -127,7 +127,7 @@
         {
             "framework": "TEI",
             "device": "cpu",
-            "version": "1.7.0",
+            "version": "1.8.2",
             "os_version": "ubuntu22.04",
             "python_version": "py310",
             "pytorch_version": "2.0.1"
@@ -135,41 +135,7 @@
         {
             "framework": "TEI",
             "device": "gpu",
-            "version": "1.7.0",
-            "os_version": "ubuntu22.04",
-            "python_version": "py310",
-            "pytorch_version": "2.0.1",
-            "cuda_version": "cu122"
-        },
-        {
-            "framework": "TGI",
-            "device": "inf2",
-            "version": "3.3.4",
-            "os_version": "ubuntu22.04",
-            "python_version": "py310",
-            "pytorch_version": "2.5.1"
-        },
-        {
-            "framework": "TGI",
-            "device": "gpu",
-            "version": "3.3.4",
-            "os_version": "ubuntu22.04",
-            "cuda_version": "cu124",
-            "python_version": "py311",
-            "pytorch_version": "2.7.0"
-        },
-        {
-            "framework": "TEI",
-            "device": "cpu",
-            "version": "1.8.0",
-            "os_version": "ubuntu22.04",
-            "python_version": "py310",
-            "pytorch_version": "2.0.1"
-        },
-        {
-            "framework": "TEI",
-            "device": "gpu",
-            "version": "1.8.0",
+            "version": "1.8.2",
             "os_version": "ubuntu22.04",
             "python_version": "py310",
             "pytorch_version": "2.0.1",
