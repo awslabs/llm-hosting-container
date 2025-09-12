@@ -36,7 +36,7 @@ ENTRYPOINT ["./entrypoint.sh"]
 
 RUN apt-get update \
     && apt-get upgrade -y linux-libc-dev \
-    && apt-get install -y --no-install-recommends curl unzip libsqlite3-0 \
+    && apt-get install -y --no-install-recommends curl unzip libsqlite3-0 libxml2 \
     && rm -rf /var/lib/apt/lists/*
 RUN HOME_DIR=/root && \
     pip install requests && \
