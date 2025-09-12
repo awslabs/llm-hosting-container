@@ -10,7 +10,8 @@ RUN apt-get update && apt-get upgrade -y unzip
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     linux-libc-dev \
-    libsqlite3-0
+    libsqlite3-0 \
+    libxml2
 
 RUN HOME_DIR=/root && \
     uv pip install pip requests PTable && \
