@@ -2,8 +2,6 @@ version: 0.2
 
 env:
   shell: bash
-  secrets-manager:
-    GITHUB_TOKEN: "danstoken:Token"
   variables:
     FRAMEWORK_FOLDER: "huggingface/pytorch/tei/docker"
     PYTHONPATH: "/codebuild/output/src*/src/github.com/awslabs/llm-hosting-container"
@@ -15,9 +13,6 @@ phases:
     commands:
       - echo "Installing Python version 3.11 ..."
       - pyenv global $PYTHON_311_VERSION
-      - git config --global credential.helper '!f() { echo "username=x-access-token"; echo "password=$GITHUB_TOKEN"; }; f'
-      - git lfs install
-      - git config --global lfs.https://github.com.access basic
 
   pre_build:
     commands:
