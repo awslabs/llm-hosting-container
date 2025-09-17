@@ -96,6 +96,14 @@
                 "os_version": "ubuntu22.04",
                 "python_version": "py310",
                 "pytorch_version": "2.5.1"
+            },
+            {
+                "device": "inf2",
+                "min_version": "3.3.6",
+                "max_version": "3.3.6",
+                "os_version": "ubuntu22.04",
+                "python_version": "py310",
+                "pytorch_version": "2.7.0"
             }
         ],
         "TEI": [
@@ -144,10 +152,10 @@
         {
             "framework": "TGI",
             "device": "inf2",
-            "version": "3.3.4",
+            "version": "3.3.6",
             "os_version": "ubuntu22.04",
             "python_version": "py310",
-            "pytorch_version": "2.5.1"
+            "pytorch_version": "2.7.0"
         },
         {
             "framework": "TGI",
