@@ -71,6 +71,8 @@ RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-g
     ca-certificates \
     libssl-dev \
     curl \
+    libxml2 \  
+    && apt-get upgrade -y libxml2 \  
     && rm -rf /var/lib/apt/lists/*
 
 # Copy a lot of the Intel shared objects because of the mkl_serv_intel_cpu_true patch...
