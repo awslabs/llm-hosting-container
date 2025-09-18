@@ -6,8 +6,38 @@ FROM base AS sagemaker
 # This is required to properly track hub usage metrics
 ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:neuron:inference:tgi-optimum-neuron"
 
-# Launch original TGI neuron entrypoint, but with port 8080
-ENTRYPOINT ["./tgi-entrypoint.sh", "--port", "8080"]
+# Create the entrypoint script.
+# This is a modified version of the original TGI neuron entrypoint:
+# https://github.com/huggingface/text-generation-inference/blob/79183d164728f080e1a571b7ff1f58bd0ed840b0/backends/neuron/tgi-entrypoint.sh
+#
+# The reason is that we add the "-- port 8080" to the original entrypoint, and we ignore parameters, because it seems
+# that when the container is deployed on Sagemaker, it is invoked with the "serve" that makes the
+# text-generation-launcher crash, so the parameters need to be ignored.
+#
+# We use a 'heredoc' pattern to keep the Dockerfile self-contained
+# All content within the 'EOF' marker is written to the entrypoint.sh file
+RUN cat <<'EOF' > entrypoint.sh
+#!/bin/bash
+set -e -o pipefail -u
+
+export ENV_FILEPATH=$(mktemp)
+
+trap "rm -f ${ENV_FILEPATH}" EXIT
+
+touch $ENV_FILEPATH
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+${SCRIPT_DIR}/tgi_entry_point.py
+
+source $ENV_FILEPATH
+
+exec text-generation-launcher --port 8080
+EOF
+# Make the generated entrypoint script executable
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["./entrypoint.sh"]
 
 RUN apt-get update \
     && apt-get upgrade -y linux-libc-dev \
