@@ -31,7 +31,7 @@ RUN wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRO
     echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | \
     tee /etc/apt/sources.list.d/oneAPI.list
 
-RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     intel-oneapi-mkl-devel=2024.0.0-49656 \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
@@ -43,7 +43,7 @@ COPY --from=planner /usr/src/recipe.json recipe.json
 
 RUN --mount=type=secret,id=actions_results_url,env=ACTIONS_RESULTS_URL \
     --mount=type=secret,id=actions_runtime_token,env=ACTIONS_RUNTIME_TOKEN \
-    cargo chef cook --release --features ort,candle,mkl --no-default-features --recipe-path recipe.json && sccache -s
+    cargo chef cook --release --features ort,candle,mkl,static-linking --no-default-features --recipe-path recipe.json && sccache -s
 
 COPY backends backends
 COPY core core
@@ -55,7 +55,7 @@ FROM builder AS http-builder
 
 RUN --mount=type=secret,id=actions_results_url,env=ACTIONS_RESULTS_URL \
     --mount=type=secret,id=actions_runtime_token,env=ACTIONS_RUNTIME_TOKEN \
-    cargo build --release --bin text-embeddings-router --features ort,candle,mkl,http --no-default-features && sccache -s
+    cargo build --release --bin text-embeddings-router --features ort,candle,mkl,static-linking,http --no-default-features && sccache -s
 
 FROM debian:bookworm-slim AS base
 
@@ -71,8 +71,6 @@ RUN apt-get update && apt-get upgrade -y && DEBIAN_FRONTEND=noninteractive apt-g
     ca-certificates \
     libssl-dev \
     curl \
-    libxml2 \  
-    && apt-get upgrade -y libxml2 \  
     && rm -rf /var/lib/apt/lists/*
 
 # Copy a lot of the Intel shared objects because of the mkl_serv_intel_cpu_true patch...
