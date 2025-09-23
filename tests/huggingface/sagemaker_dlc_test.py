@@ -82,7 +82,7 @@ def get_models_for_image(image_type, device_type):
                 ("google/flan-t5-xxl", None, "ml.g5.12xlarge"),
             ]
         elif device_type == "inf2":
-            return [ ("Qwen/Qwen2.5-0.5B", None, "ml.inf2.8xlarge") ]
+            return [ ("Qwen/Qwen3-0.6B", None, "ml.inf2.8xlarge") ]
         else:
             raise ValueError(f"No testing models found for {image_type} on instance {device_type}. "
                              f"please check whether the image_type and instance_type are supported.")
