@@ -26,7 +26,7 @@ def run_test(args):
         default_env["HF_MODEL_REVISION"] = args.model_revision
     if args.instance_type.startswith("ml.inf2"):
         default_env["HF_NUM_CORES"] = "2"
-        default_env["HF_AUTO_CAST_TYPE"] = "fp16"
+        default_env["HF_AUTO_CAST_TYPE"] = "bf16"
         default_env["MAX_BATCH_SIZE"] = "1"
         default_env["MAX_INPUT_TOKENS"] = "2048"
         default_env["MAX_TOTAL_TOKENS"] = "4096"
@@ -54,6 +54,7 @@ def run_test(args):
         }
         if args.instance_type.startswith("ml.inf2"):
             deploy_parameters["volume_size"] = 256
+            deploy_parameters["inference_ami_version"] = "al2-ami-sagemaker-inference-neuron-2"
         predictor = model.deploy(**deploy_parameters)
 
         logging.info("Endpoint deployment complete.")
@@ -81,7 +82,7 @@ def get_models_for_image(image_type, device_type):
                 ("google/flan-t5-xxl", None, "ml.g5.12xlarge"),
             ]
         elif device_type == "inf2":
-            return [ ("princeton-nlp/Sheared-LLaMA-1.3B", None, "ml.inf2.xlarge") ]
+            return [ ("Qwen/Qwen3-0.6B", None, "ml.inf2.8xlarge") ]
         else:
             raise ValueError(f"No testing models found for {image_type} on instance {device_type}. "
                              f"please check whether the image_type and instance_type are supported.")
