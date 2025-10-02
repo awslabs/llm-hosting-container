@@ -129,8 +129,8 @@
         "HF-VLLM": [
             {
                 "device": "gpu",
-                "min_version": "0.10.0",
-                "max_version": "0.10.0",
+                "min_version": "0.10.2",
+                "max_version": "0.10.2",
                 "os_version": "ubuntu22.04",
                 "cuda_version": "cu128",
                 "python_version": "py312",
@@ -147,7 +147,7 @@
         {
             "framework": "HF-VLLM",
             "device": "gpu",
-            "version": "0.10.0",
+            "version": "0.10.2",
             "os_version": "ubuntu22.04",
             "python_version": "py312",
             "pytorch_version": "2.8.0",
