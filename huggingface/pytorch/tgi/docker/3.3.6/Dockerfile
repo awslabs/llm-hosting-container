@@ -22,7 +22,7 @@ RUN HOME_DIR=/root && \
     ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python && \
     rm -rf ${HOME_DIR}/oss_compliance*
 
-COPY /huggingface/pytorch/tgi/docker/3.3.4/THIRD-PARTY-LICENSES /root/THIRD-PARTY-LICENSES
+COPY /huggingface/pytorch/tgi/docker/3.3.6/THIRD-PARTY-LICENSES /root/THIRD-PARTY-LICENSES
 
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/root/.local/share/uv/python/cpython-3.11.11-linux-x86_64-gnu/lib/"
 ENV HF_HUB_USER_AGENT_ORIGIN=aws:sagemaker:gpu-cuda:inference:tgi-native
