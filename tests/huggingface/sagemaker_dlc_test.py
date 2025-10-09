@@ -25,6 +25,7 @@ def run_test(args):
     if args.model_revision:
         default_env["HF_MODEL_REVISION"] = args.model_revision
     if args.instance_type.startswith("ml.inf2"):
+        default_env["MODEL_ID"] = default_env.pop("HF_MODEL_ID")
         default_env["HF_NUM_CORES"] = "2"
         default_env["HF_AUTO_CAST_TYPE"] = "bf16"
         default_env["MAX_BATCH_SIZE"] = "1"
