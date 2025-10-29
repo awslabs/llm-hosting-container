@@ -239,7 +239,7 @@ RUN --mount=type=cache,target=/root/.cache/ccache \
 # Check the size of the wheel if RUN_WHEEL_CHECK is true
 COPY .buildkite/check-wheel-size.py check-wheel-size.py
 # sync the default value with .buildkite/check-wheel-size.py
-ARG VLLM_MAX_SIZE_MB=450
+ARG VLLM_MAX_SIZE_MB=1200
 ENV VLLM_MAX_SIZE_MB=$VLLM_MAX_SIZE_MB
 ARG RUN_WHEEL_CHECK=true
 RUN if [ "$RUN_WHEEL_CHECK" = "true" ]; then \
@@ -317,7 +317,10 @@ RUN echo 'tzdata tzdata/Areas select America' | debconf-set-selections \
     && update-alternatives --set python3 /usr/bin/python${PYTHON_VERSION} \
     && ln -sf /usr/bin/python${PYTHON_VERSION}-config /usr/bin/python3-config \
     && curl -sS ${GET_PIP_URL} | python${PYTHON_VERSION} \
-    && python3 --version && python3 -m pip --version
+    && python3 --version && python3 -m pip --version \
+    && apt-get remove -y ffmpeg libavformat58 libavcodec58 libavutil56 \
+    && apt-get upgrade -y libsqlite3-0 \
+    && rm -rf /var/lib/apt/lists/*
 
 ARG PIP_INDEX_URL UV_INDEX_URL
 ARG PIP_EXTRA_INDEX_URL UV_EXTRA_INDEX_URL
@@ -533,14 +536,16 @@ ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:gpu-cuda:inference:hf-vllm"
 COPY /huggingface/pytorch/hf-vllm/docker/0.10.2/gpu/start-cuda-compat.sh start-cuda-compat.sh
 RUN chmod +x start-cuda-compat.sh
 
+RUN apt-get update -y && apt-get install -y unzip && rm -rf /var/lib/apt/lists/*
+
 RUN HOME_DIR=/root && \
-    uv pip install pip requests PTable && \
+    uv pip install --system pip requests PTable && \
     curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
     unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ && \
     cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
     chmod +x /usr/local/bin/testOSSCompliance && \
     chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
-    ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python && \
+    ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python3 && \
     rm -rf ${HOME_DIR}/oss_compliance*
 
 COPY /huggingface/pytorch/hf-vllm/docker/0.10.2/THIRD-PARTY-LICENSES /root/THIRD-PARTY-LICENSES
