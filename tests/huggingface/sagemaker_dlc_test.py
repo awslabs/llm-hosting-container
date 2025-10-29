@@ -20,8 +20,8 @@ class TimeoutError(Exception):
 def timeout_handler(signum, frame):
     raise TimeoutError("Test timed out")
 
-def run_test(args):
-    default_env = { "HF_MODEL_ID": args.model_id }
+def run_test(args, image_type=None):
+    default_env = { "HF_MODEL_ID": args.model_id, "MODEL_ID": args.model_id }
     if args.model_revision:
         default_env["HF_MODEL_REVISION"] = args.model_revision
     if args.instance_type.startswith("ml.inf2"):
@@ -59,10 +59,19 @@ def run_test(args):
 
         logging.info("Endpoint deployment complete.")
 
-        data = {
-            "inputs": "What is Deep Learning?",
-            "parameters": {"max_new_tokens": 50, "top_k": 50, "top_p": 0.95, "do_sample": True},
-        }
+        # vLLM uses OpenAI-compatible API format
+        if image_type == "HF-VLLM":
+            data = {
+                "prompt": "What is Deep Learning?",
+                "max_tokens": 50,
+                "temperature": 0.7,
+            }
+        else:
+            # TGI and TEI use the standard format
+            data = {
+                "inputs": "What is Deep Learning?",
+                "parameters": {"max_new_tokens": 50, "top_k": 50, "top_p": 0.95, "do_sample": True},
+            }
         output = predictor.predict(data)
         logging.info("Output: " + json.dumps(output))
         # TODO: we need to clearly define the expected output format for each models.
@@ -99,8 +108,18 @@ def get_models_for_image(image_type, device_type):
         else:
             raise ValueError(f"No testing models found for {image_type} on instance {device_type}. "
                             f"please check whether the image_type and instance_type are supported.")
+    elif image_type == "HF-VLLM":
+        if device_type == "gpu":
+            return [
+                ("bigscience/bloom-560m", None, "ml.g5.12xlarge"),
+                ("EleutherAI/gpt-neox-20b", None, "ml.g5.12xlarge"),
+                ("google/flan-t5-xxl", None, "ml.g5.12xlarge"),
+            ]
+        else:
+            raise ValueError(f"No testing models found for {image_type} on instance {device_type}. "
+                            f"please check whether the image_type and instance_type are supported.")
     else:
-        raise ValueError("Invalid image type. Supported types are 'TGI' and 'TEI'.")
+        raise ValueError("Invalid image type. Supported types are 'TGI', 'TEI', and 'HF-VLLM'.")
 
 def should_run_test_for_image(test_type, target_type):
     return test_type == target_type
@@ -110,6 +129,7 @@ def should_run_test_for_image(test_type, target_type):
     pytest.param("TGI", "inf2", marks=pytest.mark.inf2),
     pytest.param("TEI", "gpu", marks=pytest.mark.gpu),
     pytest.param("TEI", "cpu", marks=pytest.mark.cpu),
+    pytest.param("HF-VLLM", "gpu", marks=pytest.mark.gpu),
 ])
 def test(image_type, device_type, timeout: str = "3000"):
     test_target_image_type = os.getenv("TARGET_IMAGE_TYPE")
@@ -136,7 +156,7 @@ def test(image_type, device_type, timeout: str = "3000"):
             timeout=timeout
         )
         logging.info(f"Running sanity test with the following args: {args}.")
-        run_test(args)
+        run_test(args, image_type=image_type)
 
 
 if __name__ == '__main__':
