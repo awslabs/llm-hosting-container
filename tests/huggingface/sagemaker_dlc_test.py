@@ -21,7 +21,7 @@ def timeout_handler(signum, frame):
     raise TimeoutError("Test timed out")
 
 def run_test(args, image_type=None):
-    default_env = { "HF_MODEL_ID": args.model_id, "MODEL_ID": args.model_id }
+    default_env = { "HF_MODEL_ID": args.model_id, "SM_VLLM_MODEL": args.model_id }
     if args.model_revision:
         default_env["HF_MODEL_REVISION"] = args.model_revision
     if args.instance_type.startswith("ml.inf2"):
@@ -32,6 +32,8 @@ def run_test(args, image_type=None):
         default_env["MAX_TOTAL_TOKENS"] = "4096"
     else:
         default_env["SM_NUM_GPUS"] = "4"
+        default_env["SM_VLLM_MAX_MODEL_LEN"] = "512"
+        default_env["SM_VLLM_MAX_NUM_SEQS"] = "64"
 
     signal.signal(signal.SIGALRM, timeout_handler)
     signal.alarm(int(args.timeout))
@@ -111,9 +113,8 @@ def get_models_for_image(image_type, device_type):
     elif image_type == "HF-VLLM":
         if device_type == "gpu":
             return [
-                ("bigscience/bloom-560m", None, "ml.g5.12xlarge"),
-                ("EleutherAI/gpt-neox-20b", None, "ml.g5.12xlarge"),
-                ("google/flan-t5-xxl", None, "ml.g5.12xlarge"),
+                ("bigscience/bloom-560m", None, "ml.g6.12xlarge"),
+                ("Qwen/Qwen3-8B", None, "ml.g6.12xlarge"),
             ]
         else:
             raise ValueError(f"No testing models found for {image_type} on instance {device_type}. "
