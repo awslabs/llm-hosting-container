@@ -33,7 +33,7 @@ phases:
         curl -LO http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
         bash Miniconda3-latest-Linux-x86_64.sh -bfp /miniconda3
         export PATH=/miniconda3/bin:${PATH}
-        conda install python=3.11
+        conda install python=3.12
         conda update -y conda
         echo Prepare HF_VLLM dependencies for execution.
         mkdir hf-vllm-artifacts
