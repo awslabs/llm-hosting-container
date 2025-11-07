@@ -25,8 +25,8 @@ FRAMEWORK_DEVICE_DICT: Dict[str, List[str]] = {
 
 Framework = enum.Enum("Framework", ["TGI", "OPTIMUM", "TEI", "TGILLAMACPP", "HF-VLLM"])
 Device = enum.Enum("Device", ["GPU", "INF2", "CPU", "ROCM"])
-Mode = enum.Enum ("Mode", ["PR", "BUILD", "TEST", "RELEASE"])
-PipelineStatus = enum.Enum ("PipelineStatus", ["IN_PROGRESS", "SUCCESSFUL", "UNSUCCESSFUL"])
+Mode = enum.Enum("Mode", ["PR", "BUILD", "TEST", "RELEASE"])
+PipelineStatus = enum.Enum("PipelineStatus", ["IN_PROGRESS", "SUCCESSFUL", "UNSUCCESSFUL"])
 VulnerabilitySeverity = enum.Enum("VulnerabilitySeverity", ["CRITICAL", "HIGH"])
 EnvironmentVariable = enum.Enum(
     "EnvironmentVariable",
@@ -398,7 +398,9 @@ class DockerClient:
         assess the ramifications of the switch. This might also not be necessary anyways since there is an ongoing
         discussion on not building the container from source like we are doing today.
         """
-        max_jobs = os.getenv(EnvironmentVariable.DOCKER_MAX_JOBS.name, "4")
+        max_jobs = os.getenv(EnvironmentVariable.DOCKER_MAX_JOBS.name, "")
+        # Use local cache for faster rebuilds - Docker automatically caches layers
+        # that haven't changed based on Dockerfile instructions
         command = [
             "docker",
             "buildx",

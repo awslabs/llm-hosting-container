@@ -124,7 +124,6 @@
                 "python_version": "py310",
                 "pytorch_version": "2.0.1"
             }
-    
         ],
         "HF-VLLM": [
             {
@@ -145,7 +144,6 @@
         "CVE-2024-35366 -- ffmpeg",
         "CVE-2024-35367 -- ffmpeg",
         "CVE-2024-35368 -- ffmpeg"
-
     ],
     "releases": [
         {
