@@ -124,30 +124,36 @@
                 "python_version": "py310",
                 "pytorch_version": "2.0.1"
             }
+        ],
+        "HF-VLLM": [
+            {
+                "device": "gpu",
+                "min_version": "0.10.2",
+                "max_version": "0.11.0",
+                "os_version": "ubuntu22.04",
+                "cuda_version": "cu128",
+                "python_version": "py312",
+                "pytorch_version": "2.8.0"
+            }
         ]
     },
     "ignore_vulnerabilities": [
         "CVE-2024-42154 - linux",
         "CVE-2025-32434 - torch",
-        "CVE-2024-48063 - torch"
+        "CVE-2024-48063 - torch",
+        "CVE-2024-35366 -- ffmpeg",
+        "CVE-2024-35367 -- ffmpeg",
+        "CVE-2024-35368 -- ffmpeg"
     ],
     "releases": [
         {
-            "framework": "TGI",
+            "framework": "HF-VLLM",
             "device": "gpu",
-            "version": "3.3.6",
+            "version": "0.11.0",
             "os_version": "ubuntu22.04",
-            "cuda_version": "cu124",
-            "python_version": "py311",
-            "pytorch_version": "2.7.0"
-        },
-        {
-            "framework": "TGI",
-            "device": "inf2",
-            "version": "3.3.6",
-            "os_version": "ubuntu22.04",
-            "python_version": "py310",
-            "pytorch_version": "2.7.0"
+            "python_version": "py312",
+            "pytorch_version": "2.8.0",
+            "cuda_version": "cu128"
         }
     ]
 }

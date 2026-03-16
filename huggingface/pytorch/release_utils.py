@@ -20,13 +20,13 @@ FRAMEWORK_DEVICE_DICT: Dict[str, List[str]] = {
     "TGI": ["GPU", "INF2"],
     "TEI": ["GPU", "CPU"],
     "TGILLAMACPP": ["CPU"],
+    "HF-VLLM": ["GPU", "ROCM"],
 }
-Framework = enum.Enum("Framework", ["TGI", "OPTIMUM", "TEI", "TGILLAMACPP"])
-Device = enum.Enum("Device", ["GPU", "INF2", "CPU"])
+
+Framework = enum.Enum("Framework", ["TGI", "OPTIMUM", "TEI", "TGILLAMACPP", "HF-VLLM"])
+Device = enum.Enum("Device", ["GPU", "INF2", "CPU", "ROCM"])
 Mode = enum.Enum("Mode", ["PR", "BUILD", "TEST", "RELEASE"])
-PipelineStatus = enum.Enum(
-    "PipelineStatus", ["IN_PROGRESS", "SUCCESSFUL", "UNSUCCESSFUL"]
-)
+PipelineStatus = enum.Enum("PipelineStatus", ["IN_PROGRESS", "SUCCESSFUL", "UNSUCCESSFUL"])
 VulnerabilitySeverity = enum.Enum("VulnerabilitySeverity", ["CRITICAL", "HIGH"])
 EnvironmentVariable = enum.Enum(
     "EnvironmentVariable",
@@ -50,8 +50,10 @@ EnvironmentVariable = enum.Enum(
 DEFAULT_CRED_REFRESH_INTERVAL_IN_SECONDS = 1800
 DEFAULT_WAIT_INTERVAL_IN_SECONDS = 60
 DLC_PIPELINE_NAME_BY_DEVICE = {
-    Device.GPU.name.lower(): "HFTgiReleasePipeline-huggingface-pytorch-tgi-inference-gpu",
-    Device.INF2.name.lower(): "HFTgiReleasePipeline-huggingface-pytorch-tgi-inference-neuronx",
+    Device.GPU.name.lower(): "HFReleasePipeline-huggingface-pytorch-inference-gpu",
+    Device.INF2.name.lower(): "HFReleasePipeline-huggingface-pytorch-inference-neuronx",
+    Device.CPU.name.lower(): "HFReleasePipeline-huggingface-pytorch-inference-cpu",
+    Device.ROCM.name.lower(): "HFReleasePipeline-huggingface-pytorch-inference-rocm",
 }
 ECR_RELEASED_SUFFIX_TAG = "-released"
 ECR_TAG_DIGEST_PREFIX = "sha256"
@@ -396,7 +398,9 @@ class DockerClient:
         assess the ramifications of the switch. This might also not be necessary anyways since there is an ongoing
         discussion on not building the container from source like we are doing today.
         """
-        max_jobs = os.getenv(EnvironmentVariable.DOCKER_MAX_JOBS.name, "4")
+        max_jobs = os.getenv(EnvironmentVariable.DOCKER_MAX_JOBS.name, "")
+        # Use local cache for faster rebuilds - Docker automatically caches layers
+        # that haven't changed based on Dockerfile instructions
         command = [
             "docker",
             "buildx",
