@@ -1,2 +1,2 @@
-sagemaker>=2.153.0
+sagemaker>=2.153.0,<3.0.0
 pytest
