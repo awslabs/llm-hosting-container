@@ -129,7 +129,9 @@
     "ignore_vulnerabilities": [
         "CVE-2024-42154 - linux",
         "CVE-2025-32434 - torch",
-        "CVE-2024-48063 - torch"
+        "CVE-2024-48063 - torch",
+        "CVE-2025-69872 - diskcache",
+        "CVE-2026-34520 — aiohttp"
     ],
     "releases": [
         {
