@@ -26,6 +26,12 @@ ARG DOCKER_LABEL
 # sccache specific variables
 ARG SCCACHE_GHA_ENABLED
 
+RUN apt-get update && DEBIAN_FRONTEND=nointeractive apt-get install -y --no-install-recommends \
+    ca-certificates \
+    wget \
+    gnupg \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
     | gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null && \
     echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | \
