@@ -129,7 +129,9 @@
     "ignore_vulnerabilities": [
         "CVE-2024-42154 - linux",
         "CVE-2025-32434 - torch",
-        "CVE-2024-48063 - torch"
+        "CVE-2024-48063 - torch",
+        "CVE-2025-69872 - diskcache",
+        "CVE-2026-34520 — aiohttp"
     ],
     "releases": [
         {
@@ -148,6 +150,23 @@
             "os_version": "ubuntu22.04",
             "python_version": "py310",
             "pytorch_version": "2.7.0"
+        },
+        {
+            "framework": "TEI",
+            "device": "gpu",
+            "version": "1.8.2",
+            "os_version": "ubuntu22.04",
+            "cuda_version": "cu122",
+            "python_version": "py310",
+            "pytorch_version": "2.0.1"
+        },
+        {
+            "framework": "TEI",
+            "device": "cpu",
+            "version": "1.8.2",
+            "os_version": "ubuntu22.04",
+            "python_version": "py310",
+            "pytorch_version": "2.0.1"
         }
     ]
 }
