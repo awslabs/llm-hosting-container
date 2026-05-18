@@ -23,8 +23,8 @@ phases:
     commands:
       - echo Pre-build started on `date`
       - export PYTHONPATH=$(pwd):$PYTHONPATH
-      
-      # Continue with regular pre-build steps if BUILD_REQUIRED=true 
+
+      # Continue with regular pre-build steps if BUILD_REQUIRED=true
       - |
         echo Setting up Docker buildx.
         docker buildx version
