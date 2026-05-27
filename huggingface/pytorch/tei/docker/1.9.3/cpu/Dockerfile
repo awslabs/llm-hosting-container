@@ -61,7 +61,7 @@ RUN --mount=type=secret,id=actions_results_url,env=ACTIONS_RESULTS_URL \
     --mount=type=secret,id=actions_runtime_token,env=ACTIONS_RUNTIME_TOKEN \
     cargo build --release --bin text-embeddings-router --features ort,candle,mkl,static-linking,http --no-default-features && sccache -s
 
-FROM debian:bookworm-slim AS base
+FROM debian:bookworm-slim AS sagemaker
 
 ENV HUGGINGFACE_HUB_CACHE=/opt/ml/model \
     PORT=8080 \

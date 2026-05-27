@@ -106,7 +106,7 @@ RUN --mount=type=secret,id=actions_results_url,env=ACTIONS_RESULTS_URL \
 
 RUN mv /usr/src/target/release/text-embeddings-router /usr/src/target/release/text-embeddings-router-120
 
-FROM nvidia/cuda:12.9.1-runtime-ubuntu24.04 AS base
+FROM nvidia/cuda:12.9.1-runtime-ubuntu24.04 AS sagemaker
 
 ENV HUGGINGFACE_HUB_CACHE=/opt/ml/model \
     PORT=8080 \
