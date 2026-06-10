@@ -130,4 +130,3 @@ ENV HF_HUB_USER_AGENT_ORIGIN=aws:sagemaker:gpu-cuda:inference:tei
 
 COPY --chmod=775 /huggingface/pytorch/tei/docker/1.9.3/gpu/entrypoint.sh entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]
-CMD ["--json-output"]

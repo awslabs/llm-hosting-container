@@ -30,15 +30,15 @@ fi
 compute_cap=$(nvidia-smi --query-gpu=compute_cap --format=csv | sed -n '2p' | sed 's/\.//g')
 
 if [ ${compute_cap} -eq 75 ]; then
-    exec text-embeddings-router-75 "$@"
+    exec text-embeddings-router-75 --port 8080 --json-ouput
 elif [ ${compute_cap} -ge 80 -a ${compute_cap} -lt 90 ]; then
-    exec text-embeddings-router-80 "$@"
+    exec text-embeddings-router-80 --port 8080 --json-ouput
 elif [ ${compute_cap} -eq 90 ]; then
-    exec text-embeddings-router-90 "$@"
+    exec text-embeddings-router-90 --port 8080 --json-ouput
 elif [ ${compute_cap} -eq 100 ]; then
-    exec text-embeddings-router-100 "$@"
+    exec text-embeddings-router-100 --port 8080 --json-ouput
 elif [ ${compute_cap} -eq 120 ]; then
-    exec text-embeddings-router-120 "$@"
+    exec text-embeddings-router-120 --port 8080 --json-ouput
 else
     echo "cuda compute cap ${compute_cap} is not supported"
     exit 1
