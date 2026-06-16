@@ -78,9 +78,9 @@ def get_models_for_image(image_type, device_type):
     if image_type == "TGI":
         if device_type == "gpu":
             return [
-                ("bigscience/bloom-560m", None, "ml.g5.12xlarge"),
-                ("EleutherAI/gpt-neox-20b", None, "ml.g5.12xlarge"),
-                ("google/flan-t5-xxl", None, "ml.g5.12xlarge"),
+                ("bigscience/bloom-560m", None, "ml.g6.12xlarge"),
+                ("EleutherAI/gpt-neox-20b", None, "ml.g6.12xlarge"),
+                ("google/flan-t5-xxl", None, "ml.g6.12xlarge"),
             ]
         elif device_type == "inf2":
             return [ ("Qwen/Qwen3-0.6B", None, "ml.inf2.8xlarge") ]
@@ -90,13 +90,13 @@ def get_models_for_image(image_type, device_type):
     elif image_type == "TEI":
         if device_type == "gpu":
             return [
-                ("BAAI/bge-m3", None, "ml.g5.12xlarge"),
-                ("intfloat/multilingual-e5-base", None, "ml.g5.12xlarge"),
-                ("thenlper/gte-base", None, "ml.g5.12xlarge"),
-                ("sentence-transformers/all-MiniLM-L6-v2", None, "ml.g5.12xlarge")
+                ("BAAI/bge-m3", None, "ml.g6.12xlarge"),
+                ("intfloat/multilingual-e5-base", None, "ml.g6.12xlarge"),
+                ("thenlper/gte-base", None, "ml.g6.12xlarge"),
+                ("sentence-transformers/all-MiniLM-L6-v2", None, "ml.g6.12xlarge")
             ]
         elif device_type == "cpu":
-            return [("BAAI/bge-m3", None, "ml.g5.12xlarge")]
+            return [("BAAI/bge-m3", None, "ml.g6.12xlarge")]
         else:
             raise ValueError(f"No testing models found for {image_type} on instance {device_type}. "
                             f"please check whether the image_type and instance_type are supported.")
