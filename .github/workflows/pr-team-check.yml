@@ -19,21 +19,24 @@ jobs:
 
       - name: Get PR and commit authors
         id: get-authors
+        env:
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           # Get PR author
-          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
           echo "pr_author=$PR_AUTHOR" >> $GITHUB_OUTPUT
           echo "PR Author: $PR_AUTHOR"
-          
+
           # Get all commit authors in this PR
-          git fetch origin ${{ github.event.pull_request.base.ref }}
-          COMMIT_AUTHORS=$(git log origin/${{ github.event.pull_request.base.ref }}..${{ github.event.pull_request.head.sha }} --format="%an" | sort -u | tr '\n' ',' | sed 's/,$//')
+          git fetch origin "$BASE_REF"
+          COMMIT_AUTHORS=$(git log "origin/$BASE_REF..$HEAD_SHA" --format="%an" | sort -u | tr '\n' ',' | sed 's/,$//')
           echo "commit_authors=$COMMIT_AUTHORS" >> $GITHUB_OUTPUT
           echo "Commit Authors: $COMMIT_AUTHORS"
-          
+
           # Get all commit author usernames (GitHub usernames)
           COMMIT_USERNAMES=""
-          for sha in $(git log origin/${{ github.event.pull_request.base.ref }}..${{ github.event.pull_request.head.sha }} --format="%H"); do
+          for sha in $(git log "origin/$BASE_REF..$HEAD_SHA" --format="%H"); do
             author_email=$(git show --format="%ae" --no-patch $sha)
             # Try to get GitHub username from commit
             if [[ "$author_email" == *"@users.noreply.github.com" ]]; then
@@ -47,11 +50,14 @@ jobs:
 
       - name: Check for workflow modifications
         id: check-workflow-changes
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           echo "🔒 Security Check: Validating PR does not modify workflow files"
-          
+
           # Check if PR modifies any workflow files
-          WORKFLOW_CHANGES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...${{ github.event.pull_request.head.sha }} | grep -E '^\.github/workflows/' || true)
+          WORKFLOW_CHANGES=$(git diff --name-only "origin/$BASE_REF...$HEAD_SHA" | grep -E '^\.github/workflows/' || true)
           
           if [[ -n "$WORKFLOW_CHANGES" ]]; then
             echo "🚨 SECURITY ALERT: This PR modifies workflow files:"
